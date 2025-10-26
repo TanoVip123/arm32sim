@@ -8,7 +8,7 @@ export class Word implements ByteType {
   constructor(value: number = 0) {
     this.buffer = new ArrayBuffer(4);
     this.dataView = new DataView(this.buffer);
-    this.view.setUint32(0, value, false);
+    this.view.setUint32(0, value);
   }
 
   get view(): DataView {
@@ -34,7 +34,7 @@ export class Imm12 implements ByteType {
     }
     this.buffer = new ArrayBuffer(2);
     this.dataView = new DataView(this.buffer);
-    this.view.setUint16(0, value & 0x0fff, false);
+    this.view.setUint16(0, value & 0x0fff);
   }
 
   get view(): DataView {
@@ -45,3 +45,13 @@ export class Imm12 implements ByteType {
     return this.buffer;
   }
 }
+
+/*
+
+ Unerlying structure is probablArrayBuffer and convert to Uint8 as needed const uint32Array = new Uint32Array(uint8Array.buffer)
+ You probably want in memory:
+ readWord(Position)
+ writeWord(Position)
+ readByteArray() return arrayBuffer => a CustomLength with 2 constructor for size or an ArrayBuffer
+ writeByteArray(ArrayBuffer)
+ */

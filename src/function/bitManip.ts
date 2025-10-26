@@ -50,3 +50,34 @@ export function extractBits(
     (value >>> start) & (bitMask >>> (totalBitSize - (end - start)));
   return result;
 }
+
+export function writeBits(
+  buffer: ByteType,
+  content: number,
+  start: number,
+  end: number = -1,
+): number {
+  if (end === -1) {
+    end = buffer.size;
+  }
+
+  if (start > end) {
+    throw new Error(
+      `Start position ${start} must be less than or equal to end position ${end}:`,
+    );
+  }
+
+  if (end > buffer.size) {
+    throw new Error(
+      `End position ${end} should be less than buffer size ${buffer.size}`,
+    );
+  }
+
+  const totalBitSize = Math.ceil(buffer.size / 8) * 8;
+  const getter = getters[totalBitSize];
+  const bitMask = 2 ** (end - start) - 1;
+  const cleanedContent = content & bitMask;
+  const value = getter.call(buffer.view, 0);
+  const result = (value & ~(bitMask << start)) | (cleanedContent << start);
+  return result;
+}

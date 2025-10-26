@@ -2,7 +2,7 @@ import type { ArmALU } from "../interface/ALU";
 import { toFlag, type Flag, type NZCV } from "../types/flags";
 import { ShiftType } from "../types/shiftType";
 import { Imm12, Word } from "../types/binType";
-import { extractBits } from "../function/extractBit";
+import { extractBits } from "../function/bitManip";
 
 export class Arm32ALU implements ArmALU {
   nzcv: NZCV;

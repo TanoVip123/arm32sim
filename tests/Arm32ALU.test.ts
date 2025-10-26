@@ -2,7 +2,6 @@ import { expect, it, describe } from "vitest";
 import { Arm32ALU } from "../src/components/arm32ALU";
 import { Imm12, Word } from "../src/types/binType";
 import { ShiftType } from "../src/types/shiftType";
-import { NZCV } from "../src/types/flags";
 import { beforeEach } from "vitest";
 
 const alu = new Arm32ALU();
