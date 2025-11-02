@@ -4,4 +4,8 @@ import type { Word } from "../types/binType";
 export interface RegisterFile {
   writeRegister(id: number, word: Word): void;
   readRegister(id: number): Word;
+
+  // Special instruction to assess CPSR to not confused with regular register
+  readCPSR(): Word;
+  writeCPSR(word: Word): void;
 }

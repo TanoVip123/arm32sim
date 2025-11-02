@@ -303,7 +303,7 @@ export class Arm32ALU implements ArmALU {
     };
   }
 
-  shift(
+  mov(
     rm: Word,
     shift: number | Word,
     shiftType: ShiftType,
@@ -408,6 +408,22 @@ export class Arm32ALU implements ArmALU {
         V: overflow,
       },
     };
+  }
+
+  adr(rn: Word, imm12: Imm12, isAdd: boolean): { result: Word } {
+    const { imm32 } = this.processImm12(imm12, this.nzcv.C);
+    const alignedRn = new Word(rn.view.getUint32(0) & ~0x3);
+    let result: Word;
+    if (isAdd) {
+      ({ result } = this.addWithCarry(alignedRn, imm32, 0));
+    } else {
+      ({ result } = this.addWithCarry(
+        alignedRn,
+        new Word(~imm32.view.getUint32(0)),
+        1,
+      ));
+    }
+    return { result };
   }
 
   i_adc(rn: Word, imm12: Imm12): { result: Word; nzcv: NZCV } {
@@ -523,6 +539,164 @@ export class Arm32ALU implements ArmALU {
     };
   }
   //----------------------------------IMM------------------------------------------
+
+  //----------------------------------MUL and Acc----------------------------------
+  mul(rn: Word, rm: Word): { result: Word; nzcv: NZCV } {
+    const operand1: number = rn.view.getInt32(0);
+    const operand2: number = rm.view.getInt32(0);
+    const result: number = (operand1 * operand2) | 0; //This will truncate the result to 32 bit
+    return {
+      result: new Word(result),
+      nzcv: {
+        N: this.isNegative(result),
+        Z: this.isZero(result),
+        C: this.nzcv.C,
+        V: this.nzcv.V,
+      },
+    };
+  }
+
+  mla(rn: Word, rm: Word, ra: Word): { result: Word; nzcv: NZCV } {
+    const operand1: number = rn.view.getInt32(0);
+    const operand2: number = rm.view.getInt32(0);
+    const addend: number = ra.view.getInt32(0);
+    const result: number = (operand1 * operand2 + addend) | 0; //truncate to 32 bit
+    return {
+      result: new Word(result),
+      nzcv: {
+        N: this.isNegative(result),
+        Z: this.isZero(result),
+        C: this.nzcv.C,
+        V: this.nzcv.V,
+      },
+    };
+  }
+
+  umaal(
+    rn: Word,
+    rm: Word,
+    rdHi: Word,
+    rdLo: Word,
+  ): { resultHi: Word; resultLo: Word } {
+    // Safer to use bigint since regular number bitwise operation truncate the number to 32 bit implicitly
+    // Convert everything to BigInt first to since number only support up to 2**53 -1, not 2**64-1
+    const result: bigint = BigInt.asUintN(
+      64,
+      BigInt(rn.view.getUint32(0)) * BigInt(rm.view.getUint32(0)) +
+        BigInt(rdHi.view.getUint32(0)) +
+        BigInt(rdLo.view.getUint32(0)),
+    );
+    const resultHi: number = Number(result >> 32n) | 0;
+    const resultLo: number = Number(result & 0xffffffffn) | 0;
+    return {
+      resultHi: new Word(resultHi),
+      resultLo: new Word(resultLo),
+    };
+  }
+
+  mls(rn: Word, rm: Word, ra: Word): { result: Word } {
+    const operand1: number = rn.view.getInt32(0);
+    const operand2: number = rm.view.getInt32(0);
+    const addend: number = ra.view.getInt32(0);
+    const result: number = (addend - operand1 * operand2) | 0; //truncate to 32 bit
+    return {
+      result: new Word(result),
+    };
+  }
+
+  umull(rn: Word, rm: Word): { resultHi: Word; resultLo: Word; nzcv: NZCV } {
+    const result: bigint = BigInt.asUintN(
+      64,
+      BigInt(rn.view.getUint32(0)) * BigInt(rm.view.getUint32(0)),
+    );
+    const resultHi: number = Number(result >> 32n) | 0;
+    const resultLo: number = Number(result & 0xffffffffn) | 0;
+    return {
+      resultHi: new Word(resultHi),
+      resultLo: new Word(resultLo),
+      nzcv: {
+        N: this.isNegative(resultHi),
+        Z: this.isZero(resultHi) && this.isZero(resultLo),
+        C: this.nzcv.C,
+        V: this.nzcv.V,
+      },
+    };
+  }
+
+  umlal(
+    rn: Word,
+    rm: Word,
+    rdHi: Word,
+    rdLo: Word,
+  ): { resultHi: Word; resultLo: Word; nzcv: NZCV } {
+    const addend: bigint =
+      BigInt.asUintN(64, BigInt(rdHi.view.getUint32(0)) << 32n) |
+      BigInt(rdLo.view.getUint32(0));
+    const result: bigint = BigInt.asUintN(
+      64,
+      BigInt(rn.view.getUint32(0)) * BigInt(rm.view.getUint32(0)) + addend,
+    );
+    const resultHi: number = Number(result >> 32n) | 0;
+    const resultLo: number = Number(result & 0xffffffffn) | 0;
+    return {
+      resultHi: new Word(resultHi),
+      resultLo: new Word(resultLo),
+      nzcv: {
+        N: this.isNegative(resultHi),
+        Z: this.isZero(resultHi) && this.isZero(resultLo),
+        C: this.nzcv.C,
+        V: this.nzcv.V,
+      },
+    };
+  }
+
+  smull(rn: Word, rm: Word): { resultHi: Word; resultLo: Word; nzcv: NZCV } {
+    const result: bigint = BigInt.asIntN(
+      64,
+      BigInt(rn.view.getInt32(0)) * BigInt(rm.view.getInt32(0)),
+    );
+    const resultHi: number = Number(result >> 32n) | 0;
+    const resultLo: number = Number(result & 0xffffffffn) | 0;
+    return {
+      resultHi: new Word(resultHi),
+      resultLo: new Word(resultLo),
+      nzcv: {
+        N: this.isNegative(resultHi),
+        Z: this.isZero(resultHi) && this.isZero(resultLo),
+        C: this.nzcv.C,
+        V: this.nzcv.V,
+      },
+    };
+  }
+
+  smlal(
+    rn: Word,
+    rm: Word,
+    rdHi: Word,
+    rdLo: Word,
+  ): { resultHi: Word; resultLo: Word; nzcv: NZCV } {
+    const addend: bigint =
+      BigInt.asIntN(64, BigInt(rdHi.view.getUint32(0)) << 32n) |
+      BigInt(rdLo.view.getUint32(0));
+    const result: bigint = BigInt.asIntN(
+      64,
+      BigInt(rn.view.getInt32(0)) * BigInt(rm.view.getInt32(0)) + addend,
+    );
+    const resultHi: number = Number(result >> 32n) | 0;
+    const resultLo: number = Number(result & 0xffffffffn) | 0;
+    return {
+      resultHi: new Word(resultHi),
+      resultLo: new Word(resultLo),
+      nzcv: {
+        N: this.isNegative(resultHi),
+        Z: this.isZero(resultHi) && this.isZero(resultLo),
+        C: this.nzcv.C,
+        V: this.nzcv.V,
+      },
+    };
+  }
+
+  //----------------------------------MUL and Acc----------------------------------
 
   //----------------------------------HEPLER---------------------------------------
 

@@ -22,4 +22,12 @@ export class Arm32RegisterFile implements RegisterFile {
     }
     this.registerFile[id] = word;
   }
+
+  readCPSR(): Word {
+    return this.registerFile[16];
+  }
+
+  writeCPSR(word: Word): void {
+    this.registerFile[16] = word;
+  }
 }

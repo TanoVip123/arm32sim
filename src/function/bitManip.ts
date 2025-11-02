@@ -81,3 +81,12 @@ export function writeBits(
   const result = (value & ~(bitMask << start)) | (cleanedContent << start);
   return result;
 }
+
+export function countBits(value: number): number {
+  let bitCount: number = 0;
+  while (value) {
+    value = value & (value - 1);
+    bitCount += 1;
+  }
+  return bitCount;
+}

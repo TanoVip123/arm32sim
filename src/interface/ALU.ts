@@ -73,7 +73,7 @@ export interface ArmALU {
     shift: number,
     shiftType: ShiftType,
   ): { result: Word; nzcv: NZCV };
-  shift(
+  mov(
     rm: Word,
     shift: number,
     shiftType: ShiftType,
@@ -93,5 +93,32 @@ export interface ArmALU {
   i_bic(rn: Word, imm12: Imm12): { result: Word; nzcv: NZCV };
   i_mvn(imm12: Imm12): { result: Word; nzcv: NZCV };
 
+  adr(rn: Word, imm12: Imm12, isAdd: boolean): { result: Word };
+
+  //Multiplication
+  mul(rn: Word, rm: Word): { result: Word; nzcv: NZCV };
+  mla(rn: Word, rm: Word, ra: Word): { result: Word; nzcv: NZCV };
+  umaal(
+    rn: Word,
+    rm: Word,
+    rdHi: Word,
+    rdLo: Word,
+  ): { resultHi: Word; resultLo: Word };
+  mls(rn: Word, rm: Word, ra: Word): { result: Word };
+
+  umull(rn: Word, rm: Word): { resultHi: Word; resultLo: Word; nzcv: NZCV };
+  umlal(
+    rn: Word,
+    rm: Word,
+    rdHi: Word,
+    rdLo: Word,
+  ): { resultHi: Word; resultLo: Word; nzcv: NZCV };
+  smull(rn: Word, rm: Word): { resultHi: Word; resultLo: Word; nzcv: NZCV };
+  smlal(
+    rn: Word,
+    rm: Word,
+    rdHi: Word,
+    rdLo: Word,
+  ): { resultHi: Word; resultLo: Word; nzcv: NZCV };
   updateNZCV(NZCV: NZCV): void;
 }

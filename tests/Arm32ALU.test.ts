@@ -200,6 +200,35 @@ describe("Test functions of Arm32ALU", () => {
         ));
         expect(shifted.view.getUint32(0)).toBe(4294967280);
         expect(carry).toBe(1);
+
+        // Shift more than 32
+        ({ shifted, carry } = alu.shiftC(
+          new Word(2 ** 31 - 1),
+          ShiftType.LSL,
+          100,
+          0,
+        ));
+        expect(shifted.view.getUint32(0)).toBe(0);
+        expect(carry).toBe(0);
+
+        ({ shifted, carry } = alu.shiftC(
+          new Word(2 ** 31 - 1),
+          ShiftType.LSL,
+          32,
+          0,
+        ));
+        expect(shifted.view.getUint32(0)).toBe(0);
+        expect(carry).toBe(0);
+
+        // shift 0
+        ({ shifted, carry } = alu.shiftC(
+          new Word(0x12345678),
+          ShiftType.LSL,
+          0,
+          0,
+        ));
+        expect(shifted.view.getUint32(0)).toBe(0x12345678);
+        expect(carry).toBe(0);
       });
 
       it("LSR", () => {
@@ -223,6 +252,35 @@ describe("Test functions of Arm32ALU", () => {
         ({ shifted, carry } = alu.shiftC(new Word(-1), ShiftType.LSR, 4, 0));
         expect(shifted.view.getUint32(0)).toBe(268435455);
         expect(carry).toBe(1);
+
+        // shift more than 32
+        ({ shifted, carry } = alu.shiftC(
+          new Word(2 ** 31 - 1),
+          ShiftType.LSR,
+          100,
+          0,
+        ));
+        expect(shifted.view.getUint32(0)).toBe(0);
+        expect(carry).toBe(0);
+
+        ({ shifted, carry } = alu.shiftC(
+          new Word(2 ** 31 - 1),
+          ShiftType.LSR,
+          32,
+          0,
+        ));
+        expect(shifted.view.getUint32(0)).toBe(0);
+        expect(carry).toBe(0);
+
+        // shift 0
+        ({ shifted, carry } = alu.shiftC(
+          new Word(0x12345678),
+          ShiftType.LSR,
+          0,
+          0,
+        ));
+        expect(shifted.view.getUint32(0)).toBe(0x12345678);
+        expect(carry).toBe(0);
       });
 
       it("ASR", () => {
@@ -246,6 +304,54 @@ describe("Test functions of Arm32ALU", () => {
         ({ shifted, carry } = alu.shiftC(new Word(-1), ShiftType.ASR, 4, 0));
         expect(shifted.view.getUint32(0)).toBe(4294967295);
         expect(carry).toBe(1);
+
+        // Shift more than 32
+        ({ shifted, carry } = alu.shiftC(
+          new Word(0x80000000),
+          ShiftType.ASR,
+          32,
+          0,
+        ));
+        expect(shifted.view.getUint32(0)).toBe(0xffffffff);
+        expect(carry).toBe(1);
+
+        ({ shifted, carry } = alu.shiftC(
+          new Word(0x80000000),
+          ShiftType.ASR,
+          100,
+          0,
+        ));
+        expect(shifted.view.getUint32(0)).toBe(0xffffffff);
+        expect(carry).toBe(1);
+
+        // Shift more than 32
+        ({ shifted, carry } = alu.shiftC(
+          new Word(0x7ffffff),
+          ShiftType.ASR,
+          32,
+          0,
+        ));
+        expect(shifted.view.getUint32(0)).toBe(0x00000000);
+        expect(carry).toBe(0);
+
+        ({ shifted, carry } = alu.shiftC(
+          new Word(0x7ffffff),
+          ShiftType.ASR,
+          100,
+          0,
+        ));
+        expect(shifted.view.getUint32(0)).toBe(0x00000000);
+        expect(carry).toBe(0);
+
+        // shift 0
+        ({ shifted, carry } = alu.shiftC(
+          new Word(0x12345678),
+          ShiftType.ASR,
+          0,
+          0,
+        ));
+        expect(shifted.view.getUint32(0)).toBe(0x12345678);
+        expect(carry).toBe(0);
       });
 
       it("ROR", () => {
@@ -269,6 +375,25 @@ describe("Test functions of Arm32ALU", () => {
         ({ shifted, carry } = alu.shiftC(new Word(-1), ShiftType.ROR, 4, 0));
         expect(shifted.view.getUint32(0)).toBe(4294967295);
         expect(carry).toBe(1);
+
+        //Shift more than 32
+        ({ shifted, carry } = alu.shiftC(
+          new Word(0x00000001),
+          ShiftType.ROR,
+          32,
+          0,
+        ));
+        expect(shifted.view.getUint32(0)).toBe(0x00000001);
+        expect(carry).toBe(0);
+
+        ({ shifted, carry } = alu.shiftC(
+          new Word(0x00000001),
+          ShiftType.ROR,
+          100,
+          0,
+        ));
+        expect(shifted.view.getUint32(0)).toBe(0x10000000);
+        expect(carry).toBe(0);
       });
     });
   });
@@ -320,6 +445,15 @@ describe("Test functions of Arm32ALU", () => {
         new Word(0x01),
         new Word(0x03),
         31,
+        ShiftType.LSL,
+      ));
+      expect(result.view.getUint32(0)).toBe(0x00);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 1, C: 1, V: 0 });
+
+      ({ result, nzcv } = alu.and(
+        new Word(0x01),
+        new Word(0x03),
+        new Word(0x1f),
         ShiftType.LSL,
       ));
       expect(result.view.getUint32(0)).toBe(0x00);
@@ -1682,7 +1816,7 @@ describe("Test functions of Arm32ALU", () => {
 
   describe("Test Shift", () => {
     it("Test Shift Reg (with optional shift)", () => {
-      let { result, nzcv } = alu.shift(
+      let { result, nzcv } = alu.mov(
         new Word(0x00000001),
         new Word(0x00000002),
         ShiftType.LSL,
@@ -1691,7 +1825,7 @@ describe("Test functions of Arm32ALU", () => {
       expect(result.view.getUint32(0)).toBe(0x00000004);
       expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
 
-      ({ result, nzcv } = alu.shift(
+      ({ result, nzcv } = alu.mov(
         new Word(0x80000000),
         new Word(0x000000f9),
         ShiftType.LSR,
@@ -1700,7 +1834,7 @@ describe("Test functions of Arm32ALU", () => {
       expect(result.view.getUint32(0)).toBe(0x00000000);
       expect(nzcv).toStrictEqual({ N: 0, Z: 1, C: 0, V: 0 });
 
-      ({ result, nzcv } = alu.shift(
+      ({ result, nzcv } = alu.mov(
         new Word(0x80000000),
         new Word(0x00000010),
         ShiftType.ASR,
@@ -1709,7 +1843,7 @@ describe("Test functions of Arm32ALU", () => {
       expect(result.view.getUint32(0)).toBe(0xffff8000);
       expect(nzcv).toStrictEqual({ N: 1, Z: 0, C: 0, V: 0 });
 
-      ({ result, nzcv } = alu.shift(
+      ({ result, nzcv } = alu.mov(
         new Word(0x000fffff),
         new Word(0x00000014),
         ShiftType.ROR,
@@ -1719,7 +1853,7 @@ describe("Test functions of Arm32ALU", () => {
       expect(nzcv).toStrictEqual({ N: 1, Z: 0, C: 1, V: 0 });
 
       alu.updateNZCV({ N: 0, Z: 0, C: 1, V: 0 });
-      ({ result, nzcv } = alu.shift(
+      ({ result, nzcv } = alu.mov(
         new Word(0x000fffff),
         new Word(0x00000000),
         ShiftType.ROR,
@@ -1728,28 +1862,28 @@ describe("Test functions of Arm32ALU", () => {
       expect(result.view.getUint32(0)).toBe(0x8007ffff);
       expect(nzcv).toStrictEqual({ N: 1, Z: 0, C: 1, V: 0 });
 
-      ({ result, nzcv } = alu.shift(new Word(0x00000001), 2, ShiftType.LSL));
+      ({ result, nzcv } = alu.mov(new Word(0x00000001), 2, ShiftType.LSL));
       // 0x1  << 2 = 0x4
       expect(result.view.getUint32(0)).toBe(0x00000004);
       expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
 
-      ({ result, nzcv } = alu.shift(new Word(0x80000000), 9, ShiftType.LSR));
+      ({ result, nzcv } = alu.mov(new Word(0x80000000), 9, ShiftType.LSR));
       // shift = 9 => everything is 0
       expect(result.view.getUint32(0)).toBe(0x00400000);
       expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
 
-      ({ result, nzcv } = alu.shift(new Word(0x80000000), 16, ShiftType.ASR));
+      ({ result, nzcv } = alu.mov(new Word(0x80000000), 16, ShiftType.ASR));
       // shift = 16
       expect(result.view.getUint32(0)).toBe(0xffff8000);
       expect(nzcv).toStrictEqual({ N: 1, Z: 0, C: 0, V: 0 });
 
-      ({ result, nzcv } = alu.shift(new Word(0x000fffff), 20, ShiftType.ROR));
+      ({ result, nzcv } = alu.mov(new Word(0x000fffff), 20, ShiftType.ROR));
       // shift = 16
       expect(result.view.getUint32(0)).toBe(0xfffff000);
       expect(nzcv).toStrictEqual({ N: 1, Z: 0, C: 1, V: 0 });
 
       alu.updateNZCV({ N: 0, Z: 0, C: 1, V: 0 });
-      ({ result, nzcv } = alu.shift(new Word(0x000fffff), 0, ShiftType.ROR));
+      ({ result, nzcv } = alu.mov(new Word(0x000fffff), 0, ShiftType.ROR));
       // shift = 16
       expect(result.view.getUint32(0)).toBe(0x8007ffff);
       expect(nzcv).toStrictEqual({ N: 1, Z: 0, C: 1, V: 0 });
@@ -1997,6 +2131,650 @@ describe("Test functions of Arm32ALU", () => {
       ({ result, nzcv } = alu.i_mov(new Imm12(0x4ff)));
       expect(result.view.getUint32(0)).toBe(0xff000000);
       expect(nzcv).toStrictEqual({ N: 1, Z: 0, C: 1, V: 0 });
+    });
+  });
+
+  describe("Test MUL", () => {
+    it("Test MUL", () => {
+      // Case 1: Basic multiply
+      // 0x00000002 * 0x00000003 = 0x00000006
+      // N=0, Z=0
+      let { result, nzcv } = alu.mul(
+        new Word(0x00000002),
+        new Word(0x00000003),
+      );
+      expect(result.view.getUint32(0)).toBe(0x00000006);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+
+      // Case 2: Multiply by zero
+      // 0x12345678 * 0x00000000 = 0x00000000
+      // N=0, Z=1
+      ({ result, nzcv } = alu.mul(new Word(0x12345678), new Word(0x00000000)));
+      expect(result.view.getUint32(0)).toBe(0x00000000);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 1, C: 0, V: 0 });
+
+      // Case 3: Multiply negative by positive (signed overflow ignored)
+      // 0xFFFFFFFF (-1) * 0x00000002 = 0xFFFFFFFE (-2)
+      // N=1, Z=0
+      ({ result, nzcv } = alu.mul(new Word(0xffffffff), new Word(0x00000002)));
+      expect(result.view.getUint32(0)).toBe(0xfffffffe);
+      expect(nzcv).toStrictEqual({ N: 1, Z: 0, C: 0, V: 0 });
+
+      // Case 4: Multiply two large values, result wraps around
+      // 0xFFFFFFFF * 0xFFFFFFFF = 0x00000001 (only low 32 bits kept)
+      // N=0, Z=0
+      ({ result, nzcv } = alu.mul(new Word(0xffffffff), new Word(0xffffffff)));
+      expect(result.view.getUint32(0)).toBe(0x00000001);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+
+      // Case 5: High bit set in result
+      // 0x80000000 * 0x00000002 = 0x00000000 (since 0x100000000 wraps)
+      // N=0, Z=1
+      ({ result, nzcv } = alu.mul(new Word(0x80000000), new Word(0x00000002)));
+      expect(result.view.getUint32(0)).toBe(0x00000000);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 1, C: 0, V: 0 });
+
+      // Case 6: Mixed positive and negative (two’s complement behavior)
+      // 0x00000002 * 0xFFFFFFFE (-2) = 0xFFFFFFFC (-4)
+      // N=1, Z=0
+      ({ result, nzcv } = alu.mul(new Word(0x00000002), new Word(0xfffffffe)));
+      expect(result.view.getUint32(0)).toBe(0xfffffffc);
+      expect(nzcv).toStrictEqual({ N: 1, Z: 0, C: 0, V: 0 });
+    });
+  });
+
+  describe("Test MLA", () => {
+    it("Test MLA", () => {
+      // Case 1: Basic multiply-accumulate
+      // (0x00000002 * 0x00000003) + 0x00000001 = 0x00000007
+      // N=0, Z=0
+      let { result, nzcv } = alu.mla(
+        new Word(0x00000002),
+        new Word(0x00000003),
+        new Word(0x00000001),
+      );
+      expect(result.view.getUint32(0)).toBe(0x00000007);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+
+      // Case 2: Accumulate zero
+      // (0x00000005 * 0x00000005) + 0x00000000 = 0x00000019
+      // N=0, Z=0
+      ({ result, nzcv } = alu.mla(
+        new Word(0x00000005),
+        new Word(0x00000005),
+        new Word(0x00000000),
+      ));
+      expect(result.view.getUint32(0)).toBe(0x00000019);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+
+      // Case 3: Negative multiplication result with positive accumulator
+      // (0xFFFFFFFF * 0x00000002) + 0x00000003 = 0x00000001
+      // (-1 * 2) + 3 = 1
+      // N=0, Z=0
+      ({ result, nzcv } = alu.mla(
+        new Word(0xffffffff),
+        new Word(0x00000002),
+        new Word(0x00000003),
+      ));
+      expect(result.view.getUint32(0)).toBe(0x00000001);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+
+      // Case 4: Wraparound (only low 32 bits kept)
+      // (0xFFFFFFFF * 0xFFFFFFFF) + 0x00000001 = 0x00000002
+      // N=0, Z=0
+      ({ result, nzcv } = alu.mla(
+        new Word(0xffffffff),
+        new Word(0xffffffff),
+        new Word(0x00000001),
+      ));
+      expect(result.view.getUint32(0)).toBe(0x00000002);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+
+      // Case 5: Result becomes zero after accumulation
+      // (0x00000002 * 0xFFFFFFFF) + 0x00000002 = 0x00000002
+      ({ result, nzcv } = alu.mla(
+        new Word(0x00000002),
+        new Word(0xffffffff),
+        new Word(0x00000002),
+      ));
+      expect(result.view.getUint32(0)).toBe(0x00000000);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 1, C: 0, V: 0 });
+
+      // Case 6: High-bit result (negative in signed interpretation)
+      // (0x80000000 * 0x00000002) + 0x00000000 = 0x00000000 (wraps)
+      // N=0, Z=1
+      ({ result, nzcv } = alu.mla(
+        new Word(0x80000000),
+        new Word(0x00000002),
+        new Word(0x00000000),
+      ));
+      expect(result.view.getUint32(0)).toBe(0x00000000);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 1, C: 0, V: 0 });
+
+      // Case 7: Accumulation with negative accumulator
+      // (0x00000004 * 0x00000004) + 0xFFFFFFF0 = 0x00000010 + 0xFFFFFFF0 = 0x00000000
+      // N=0, Z=1
+      ({ result, nzcv } = alu.mla(
+        new Word(0x00000004),
+        new Word(0x00000004),
+        new Word(0xfffffff0),
+      ));
+      expect(result.view.getUint32(0)).toBe(0x00000000);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 1, C: 0, V: 0 });
+    });
+  });
+
+  describe("Test UMAAL", () => {
+    it("Test UMAAL", () => {
+      // Case 1: Basic operation
+      // (rdHi:rdLo) = 0x00000000_00000000
+      // rn * rm = 0x00000002 * 0x00000003 = 0x0000000000000006
+      // Final = 0x0000000000000006
+      let { resultHi, resultLo } = alu.umaal(
+        new Word(0x00000002),
+        new Word(0x00000003),
+        new Word(0x00000000),
+        new Word(0x00000000),
+      );
+      expect(resultHi.view.getUint32(0)).toBe(0x00000000);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000006);
+
+      // Case 2: With accumulation (rdLo nonzero)
+      // rn * rm = 0x00000004 * 0x00000005 = 0x0000000000000014
+      // Add rdLo = 0x00000003, rdHi = 0x00000000
+      // Final = 0x0000000000000017
+      ({ resultHi, resultLo } = alu.umaal(
+        new Word(0x00000004),
+        new Word(0x00000005),
+        new Word(0x00000000),
+        new Word(0x00000003),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x00000000);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000017);
+
+      // Case 3: Addition causes 32-bit carry
+      // rn * rm = 0xFFFFFFFF * 0x00000002 = 0x00000001_FFFFFFFE
+      // Add rdHi = 0x00000000, rdLo = 0x00000002
+      // Result = 0x00000001_FFFFFFFE + 0x0000000000000002 = 0x00000002_00000000
+      ({ resultHi, resultLo } = alu.umaal(
+        new Word(0xffffffff),
+        new Word(0x00000002),
+        new Word(0x00000000),
+        new Word(0x00000002),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x00000002);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000000);
+
+      // Case 4: Large numbers with accumulation in both hi/lo
+      // rn * rm = 0xFFFFFFFE * 0xFFFFFFFE = 0xFFFFFFFC_00000004
+      // Add rdHi:rdLo = 0x00000001_00000001
+      // Final = 0xFFFFFFFD_00000006
+      ({ resultHi, resultLo } = alu.umaal(
+        new Word(0xfffffffe),
+        new Word(0xfffffffe),
+        new Word(0x00000001),
+        new Word(0x00000001),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0xfffffffc);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000006);
+
+      // Case 5: Result wraps around 64-bit boundary
+      // rn * rm = 0xFFFFFFFF * 0xFFFFFFFF = 0xFFFFFFFE_00000001
+      // Add rdHi:rdLo = 0x00000000_FFFFFFFF
+      // Final = 0xFFFFFFFF_00000000 (wrap)
+      ({ resultHi, resultLo } = alu.umaal(
+        new Word(0xffffffff),
+        new Word(0xffffffff),
+        new Word(0x00000000),
+        new Word(0xffffffff),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0xffffffff);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000000);
+
+      // Case 6: Edge case with rdHi and rdLo both max
+      // rn * rm = 0x00000001 * 0x00000001 = 0x0000000000000001
+      // Add rdHi:rdLo = 0x00000001_FFFFFFFF
+      // Final = 0x00000000_00000000 (wrap around)
+      ({ resultHi, resultLo } = alu.umaal(
+        new Word(0x00000001),
+        new Word(0x00000001),
+        new Word(0xffffffff),
+        new Word(0xffffffff),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x00000001);
+      expect(resultLo.view.getUint32(0)).toBe(0xffffffff);
+    });
+  });
+
+  describe("Test MLS", () => {
+    it("Test MLS", () => {
+      // Case 1: Basic multiply-subtract
+      // ra - (rn * rm)
+      // 0x00000010 - (0x00000002 * 0x00000003) = 0x00000010 - 0x00000006 = 0x0000000A
+      let { result } = alu.mls(
+        new Word(0x00000002),
+        new Word(0x00000003),
+        new Word(0x00000010),
+      );
+      expect(result.view.getUint32(0)).toBe(0x0000000a);
+
+      // Case 2: Result goes negative (wrap-around)
+      // 0x00000005 - (0x00000003 * 0x00000003) = 0x00000005 - 0x00000009 = 0xFFFFFFFC
+      ({ result } = alu.mls(
+        new Word(0x00000003),
+        new Word(0x00000003),
+        new Word(0x00000005),
+      ));
+      expect(result.view.getUint32(0)).toBe(0xfffffffc);
+
+      // Case 3: Subtract zero
+      // 0x12345678 - (0x00000000 * 0x00000009) = 0x12345678 - 0x00000000 = 0x12345678
+      ({ result } = alu.mls(
+        new Word(0x00000000),
+        new Word(0x00000009),
+        new Word(0x12345678),
+      ));
+      expect(result.view.getUint32(0)).toBe(0x12345678);
+
+      // Case 4: Multiply by zero
+      // 0x000000AA - (0xFFFFFFFF * 0x00000000) = 0x000000AA - 0x00000000 = 0x000000AA
+      ({ result } = alu.mls(
+        new Word(0xffffffff),
+        new Word(0x00000000),
+        new Word(0x000000aa),
+      ));
+      expect(result.view.getUint32(0)).toBe(0x000000aa);
+
+      // Case 5: Large operands causing wrap-around
+      // 0x00000000 - (0xFFFFFFFF * 0xFFFFFFFF) = 0x00000000 - 0xFFFFFFFE_00000001 = 0xFFFFFFFF
+      ({ result } = alu.mls(
+        new Word(0xffffffff),
+        new Word(0xffffffff),
+        new Word(0x00000000),
+      ));
+      expect(result.view.getUint32(0)).toBe(0xffffffff);
+
+      // Case 6: Mixed signed-like behavior
+      // 0xFFFFFFFE - (0x00000002 * 0xFFFFFFFE)
+      // = 0xFFFFFFFE - 0x1FFFFFFFC = 0x00000002
+      ({ result } = alu.mls(
+        new Word(0x00000002),
+        new Word(0xfffffffe),
+        new Word(0xfffffffe),
+      ));
+      expect(result.view.getUint32(0)).toBe(0x00000002);
+
+      // Case 7: Overflow wrap-around
+      // 0x00000001 - (0x80000000 * 0x00000002)
+      // = 0x00000001 - 0x00000000 (since 0x100000000 wraps) = 0x00000001
+      ({ result } = alu.mls(
+        new Word(0x80000000),
+        new Word(0x00000002),
+        new Word(0x00000001),
+      ));
+      expect(result.view.getUint32(0)).toBe(0x00000001);
+    });
+  });
+
+  describe("Test UMULL", () => {
+    it("Test UMULL", () => {
+      // Case 1: Basic multiply
+      // 0x00000002 * 0x00000003 = 0x00000000_00000006
+      // N=0, Z=0
+      let { resultHi, resultLo, nzcv } = alu.umull(
+        new Word(0x00000002),
+        new Word(0x00000003),
+      );
+      expect(resultHi.view.getUint32(0)).toBe(0x00000000);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000006);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+
+      // Case 2: Multiplying by zero
+      // 0x12345678 * 0x00000000 = 0x00000000_00000000
+      // N=0, Z=1
+      ({ resultHi, resultLo, nzcv } = alu.umull(
+        new Word(0x12345678),
+        new Word(0x00000000),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x00000000);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000000);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 1, C: 0, V: 0 });
+
+      // Case 3: Large operands (no overflow beyond 64-bit)
+      // 0xFFFFFFFF * 0x00000002 = 0x00000001_FFFFFFFE
+      // N=0, Z=0
+      ({ resultHi, resultLo, nzcv } = alu.umull(
+        new Word(0xffffffff),
+        new Word(0x00000002),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x00000001);
+      expect(resultLo.view.getUint32(0)).toBe(0xfffffffe);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+
+      // Case 4: Both operands max (0xFFFFFFFF × 0xFFFFFFFF)
+      // = 0xFFFFFFFE_00000001
+      // N=1 (since high bit of 64-bit result = 1), Z=0
+      ({ resultHi, resultLo, nzcv } = alu.umull(
+        new Word(0xffffffff),
+        new Word(0xffffffff),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0xfffffffe);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000001);
+      expect(nzcv).toStrictEqual({ N: 1, Z: 0, C: 0, V: 0 });
+
+      // Case 5: Mid-range values (no carry)
+      // 0x00010000 * 0x00010000 = 0x00000001_00000000
+      // N=0, Z=0
+      ({ resultHi, resultLo, nzcv } = alu.umull(
+        new Word(0x00010000),
+        new Word(0x00010000),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x00000001);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000000);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+
+      // Case 6: Single high-bit operand
+      // 0x80000000 * 0x00000002 = 0x00000001_00000000
+      // N=0, Z=0
+      ({ resultHi, resultLo, nzcv } = alu.umull(
+        new Word(0x80000000),
+        new Word(0x00000002),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x00000001);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000000);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+
+      // Case 7: Result zero (both inputs 0)
+      // 0x00000000 * 0x00000000 = 0x00000000_00000000
+      // N=0, Z=1
+      ({ resultHi, resultLo, nzcv } = alu.umull(
+        new Word(0x00000000),
+        new Word(0x00000000),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x00000000);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000000);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 1, C: 0, V: 0 });
+    });
+  });
+
+  describe("Test UMLAL", () => {
+    it("Test UMLAL", () => {
+      // Case 1: Basic multiply-accumulate
+      // rn * rm = 0x00000002 * 0x00000003 = 0x00000000_00000006
+      // + rdHi:rdLo = 0x00000000_00000001
+      // Result = 0x00000000_00000007
+      // N=0, Z=0
+      let { resultHi, resultLo, nzcv } = alu.umlal(
+        new Word(0x00000002),
+        new Word(0x00000003),
+        new Word(0x00000000),
+        new Word(0x00000001),
+      );
+      expect(resultHi.view.getUint32(0)).toBe(0x00000000);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000007);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+
+      // Case 2: Accumulation with nonzero high part
+      // rn * rm = 0x00000004 * 0x00000005 = 0x00000000_00000014
+      // + rdHi:rdLo = 0x00000001_00000000
+      // Result = 0x00000001_00000014
+      // N=0, Z=0
+      ({ resultHi, resultLo, nzcv } = alu.umlal(
+        new Word(0x00000004),
+        new Word(0x00000005),
+        new Word(0x00000001),
+        new Word(0x00000000),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x00000001);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000014);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+
+      // Case 3: Accumulation causes 64-bit carry
+      // rn * rm = 0xFFFFFFFF * 0x00000002 = 0x00000001_FFFFFFFE
+      // + rdHi:rdLo = 0x00000000_FFFFFFFF
+      // Result = 0x00000002_FFFFFFFD (carry into high part)
+      // N=0, Z=0
+      ({ resultHi, resultLo, nzcv } = alu.umlal(
+        new Word(0xffffffff),
+        new Word(0x00000002),
+        new Word(0x00000000),
+        new Word(0xffffffff),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x00000002);
+      expect(resultLo.view.getUint32(0)).toBe(0xfffffffd);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+
+      // Case 4: Both operands max (0xFFFFFFFF * 0xFFFFFFFF)
+      // = 0xFFFFFFFE_00000001
+      // + rdHi:rdLo = 0x00000000_00000000
+      // = 0xFFFFFFFE_00000001
+      // N=1 (MSB of resultHi is 1), Z=0
+      ({ resultHi, resultLo, nzcv } = alu.umlal(
+        new Word(0xffffffff),
+        new Word(0xffffffff),
+        new Word(0x00000000),
+        new Word(0x00000000),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0xfffffffe);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000001);
+      expect(nzcv).toStrictEqual({ N: 1, Z: 0, C: 0, V: 0 });
+
+      // Case 5: Result becomes zero
+      // rn * rm = 0x00000001 * 0x00000001 = 0x00000000_00000001
+      // + rdHi:rdLo = 0xFFFFFFFF_FFFFFFFF
+      // = 0x00000000_00000000 (wrap)
+      // N=0, Z=1
+      ({ resultHi, resultLo, nzcv } = alu.umlal(
+        new Word(0x00000001),
+        new Word(0x00000001),
+        new Word(0xffffffff),
+        new Word(0xffffffff),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x00000000);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000000);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 1, C: 0, V: 0 });
+
+      // Case 6: High-bit result (overflow into high word)
+      // rn * rm = 0x80000000 * 0x00000002 = 0x00000001_00000000
+      // + rdHi:rdLo = 0x00000000_00000000
+      // = 0x00000001_00000000
+      // N=0, Z=0
+      ({ resultHi, resultLo, nzcv } = alu.umlal(
+        new Word(0x80000000),
+        new Word(0x00000002),
+        new Word(0x00000000),
+        new Word(0x00000000),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x00000001);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000000);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+
+      // Case 7: Simple accumulation adds up multiple times (for chaining test)
+      // 1) 0x00000001 * 0x00000002 = 0x00000000_00000002
+      //    + rdHi:rdLo = 0x00000000_00000003
+      //    => 0x00000000_00000005
+      ({ resultHi, resultLo, nzcv } = alu.umlal(
+        new Word(0x00000001),
+        new Word(0x00000002),
+        new Word(0x00000000),
+        new Word(0x00000003),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x00000000);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000005);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+    });
+  });
+
+  describe("Test SMULL", () => {
+    it("Test SMULL", () => {
+      // Case 1: Positive × Positive
+      // rn * rm = 0x00000002 * 0x00000003 = 0x00000000_00000006
+      // N=0, Z=0
+      let { resultHi, resultLo, nzcv } = alu.smull(
+        new Word(0x00000002),
+        new Word(0x00000003),
+      );
+      expect(resultHi.view.getUint32(0)).toBe(0x00000000);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000006);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+
+      // Case 2: Negative × Positive
+      // rn * rm = (-2) * 3 = -6 = 0xFFFFFFFF_FFFFFFFA
+      // ResultHi = 0xFFFFFFFF, ResultLo = 0xFFFFFFFA
+      // N=1, Z=0
+      ({ resultHi, resultLo, nzcv } = alu.smull(
+        new Word(0xfffffffe),
+        new Word(0x00000003),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0xffffffff);
+      expect(resultLo.view.getUint32(0)).toBe(0xfffffffa);
+      expect(nzcv).toStrictEqual({ N: 1, Z: 0, C: 0, V: 0 });
+
+      // Case 3: Positive × Negative
+      // rn * rm = 2 * (-3) = -6 = 0xFFFFFFFF_FFFFFFFA
+      ({ resultHi, resultLo, nzcv } = alu.smull(
+        new Word(0x00000002),
+        new Word(0xfffffffd),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0xffffffff);
+      expect(resultLo.view.getUint32(0)).toBe(0xfffffffa);
+      expect(nzcv).toStrictEqual({ N: 1, Z: 0, C: 0, V: 0 });
+
+      // Case 4: Negative × Negative
+      // rn * rm = (-2) * (-3) = 6 = 0x00000000_00000006
+      // N=0, Z=0
+      ({ resultHi, resultLo, nzcv } = alu.smull(
+        new Word(0xfffffffe),
+        new Word(0xfffffffd),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x00000000);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000006);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+
+      // Case 5: Large positive values cause high part to fill
+      // rn * rm = 0x7FFFFFFF * 0x00000002 = 0x00000000_FFFFFFFE
+      // N=0, Z=0
+      ({ resultHi, resultLo, nzcv } = alu.smull(
+        new Word(0x7fffffff),
+        new Word(0x00000002),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x00000000);
+      expect(resultLo.view.getUint32(0)).toBe(0xfffffffe);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+
+      // Case 6: Large negative × Large negative
+      // (-2147483648) * (-2147483648) = 0x40000000_00000000
+      // N=0, Z=0
+      ({ resultHi, resultLo, nzcv } = alu.smull(
+        new Word(0x80000000),
+        new Word(0x80000000),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x40000000);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000000);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+
+      // Case 7: Result is zero
+      // rn * rm = 0x00000000 * 0xFFFFFFFF = 0x00000000_00000000
+      // N=0, Z=1
+      ({ resultHi, resultLo, nzcv } = alu.smull(
+        new Word(0x00000000),
+        new Word(0xffffffff),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x00000000);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000000);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 1, C: 0, V: 0 });
+
+      // Case 8: Result is zero
+      // rn * rm = 0xFFFFFFFF * 0xFFFFFFFF = 0x00000000_00000001
+      // N=0, Z=1
+      ({ resultHi, resultLo, nzcv } = alu.smull(
+        new Word(0xffffffff),
+        new Word(0xffffffff),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x00000000);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000001);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+    });
+  });
+
+  describe("Test SMLAL", () => {
+    it("Test SMLAL", () => {
+      // Case 1: Basic positive accumulate
+      // (0x00000002 * 0x00000003) + 0x00000000_00000001
+      // = 0x00000000_00000007
+      // N=0, Z=0
+      let { resultHi, resultLo, nzcv } = alu.smlal(
+        new Word(0x00000002),
+        new Word(0x00000003),
+        new Word(0x00000000),
+        new Word(0x00000001),
+      );
+      expect(resultHi.view.getUint32(0)).toBe(0x00000000);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000007);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+
+      // Case 2: Negative × Positive with accumulator
+      // (-2 * 3) + 5 = -1 = 0xFFFFFFFF_FFFFFFFF
+      ({ resultHi, resultLo, nzcv } = alu.smlal(
+        new Word(0xfffffffe),
+        new Word(0x00000003),
+        new Word(0x00000000),
+        new Word(0x00000005),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0xffffffff);
+      expect(resultLo.view.getUint32(0)).toBe(0xffffffff);
+      expect(nzcv).toStrictEqual({ N: 1, Z: 0, C: 0, V: 0 });
+
+      // Case 3: Negative × Negative, accumulate positive
+      // (-2 * -3) + 1 = 6 + 1 = 7 = 0x00000000_00000007
+      ({ resultHi, resultLo, nzcv } = alu.smlal(
+        new Word(0xfffffffe),
+        new Word(0xfffffffd),
+        new Word(0x00000000),
+        new Word(0x00000001),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x00000000);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000007);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+
+      // Case 4: Large negative operands with accumulator overflow
+      // (-2147483648 * -2147483648) + 1
+      // = 0x40000000_00000000 + 1 = 0x40000000_00000001
+      ({ resultHi, resultLo, nzcv } = alu.smlal(
+        new Word(0x80000000),
+        new Word(0x80000000),
+        new Word(0x00000000),
+        new Word(0x00000001),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x40000000);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000001);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
+
+      // Case 5: Result becomes zero after accumulation
+      // (-2 * 3) + 6 = -6 + 6 = 0
+      // 0x00000000_00000000
+      ({ resultHi, resultLo, nzcv } = alu.smlal(
+        new Word(0xfffffffe),
+        new Word(0x00000003),
+        new Word(0x00000000),
+        new Word(0x00000006),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x00000000);
+      expect(resultLo.view.getUint32(0)).toBe(0x00000000);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 1, C: 0, V: 0 });
+
+      // Case 6: Accumulating into a large 64-bit value
+      // (0x7FFFFFFF * 0x00000002) + 0x00000000_FFFFFFFF
+      // = 0x00000000_FFFFFFFE + 0x00000000_FFFFFFFF = 0x00000001_FFFFFFFD
+      ({ resultHi, resultLo, nzcv } = alu.smlal(
+        new Word(0x7fffffff),
+        new Word(0x00000002),
+        new Word(0x00000000),
+        new Word(0xffffffff),
+      ));
+      expect(resultHi.view.getUint32(0)).toBe(0x00000001);
+      expect(resultLo.view.getUint32(0)).toBe(0xfffffffd);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 0, V: 0 });
     });
   });
 });

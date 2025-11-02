@@ -18,6 +18,10 @@ export class Word implements ByteType {
   get raw() {
     return this.buffer;
   }
+
+  equals(other: Word): boolean {
+    return this.view.getUint32(0) === other.view.getUint32(0);
+  }
 }
 
 export class Imm12 implements ByteType {
@@ -43,6 +47,10 @@ export class Imm12 implements ByteType {
 
   get raw() {
     return this.buffer;
+  }
+
+  equals(other: Imm12): boolean {
+    return this.view.getUint16(0) === other.view.getUint16(0);
   }
 }
 
