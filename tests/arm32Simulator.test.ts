@@ -1336,12 +1336,13 @@ describe("Branch", () => {
 
     expect(mockRegisterFile.writeRegister.mock.calls[0]).toStrictEqual([
       15,
-      new Word((imm << 2) + DEFAULT_REGISTER_VALUE),
+      new Word(new Word(0xfffc03fc).view.getInt32(0) + DEFAULT_REGISTER_VALUE),
     ]);
   });
 
   it("Branch BL", () => {
-    const imm = 0xff00ff;
+    // offset = 0x000003FC
+    const imm = 0x0000ff;
     const instruction = new Word(imm | (0b1011 << 24) | (0xe << 28));
 
     simulator.execInstruction(instruction);
@@ -1357,7 +1358,7 @@ describe("Branch", () => {
     ]);
     expect(mockRegisterFile.writeRegister.mock.calls[1]).toStrictEqual([
       15,
-      new Word((imm << 2) + DEFAULT_REGISTER_VALUE),
+      new Word(new Word(0x000003fc).view.getInt32(0) + DEFAULT_REGISTER_VALUE),
     ]);
   });
 });
@@ -4421,7 +4422,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.and.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -4462,7 +4463,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.and.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -4508,7 +4509,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.eor.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -4549,7 +4550,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.eor.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -4595,7 +4596,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.sub.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -4636,7 +4637,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.sub.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -4682,7 +4683,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.rsb.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -4723,7 +4724,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.rsb.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -4769,7 +4770,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.add.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -4810,7 +4811,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.add.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -4856,7 +4857,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.adc.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -4897,7 +4898,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.adc.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -4943,7 +4944,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.sbc.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -4984,7 +4985,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.sbc.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -5030,7 +5031,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.rsc.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -5071,7 +5072,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.rsc.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -5117,7 +5118,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.and.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -5157,7 +5158,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.eor.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -5197,7 +5198,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.sub.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -5237,7 +5238,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.add.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -5277,7 +5278,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.orr.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -5318,7 +5319,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.orr.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -5360,7 +5361,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.mov).toBeCalledTimes(1);
     expect(mockALU.mov.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -5397,7 +5398,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.mov).toBeCalledTimes(1);
     expect(mockALU.mov.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -5443,7 +5444,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.bic.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -5484,7 +5485,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.bic.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -5523,10 +5524,12 @@ describe("Data Processing register shift register", () => {
     expect(mockRegisterFile.readRegister).toBeCalledWith(rm);
     expect(mockRegisterFile.readRegister).toBeCalledWith(rn);
 
+    // It receive a Word because it is reg shift reg.
+    // reg shift imm receive a number, not a Word
     expect(mockALU.mvn).toBeCalledTimes(1);
     expect(mockALU.mvn.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -5563,7 +5566,7 @@ describe("Data Processing register shift register", () => {
     expect(mockALU.mvn).toBeCalledTimes(1);
     expect(mockALU.mvn.mock.calls[0]).toStrictEqual([
       new Word(DEFAULT_REGISTER_VALUE),
-      DEFAULT_REGISTER_VALUE,
+      new Word(DEFAULT_REGISTER_VALUE),
       shiftType,
     ]);
 
@@ -6182,6 +6185,52 @@ describe("Multiply and Accumulate", () => {
     expect(mockRegisterFile.writeCPSR).toBeCalledTimes(1);
     expect(mockRegisterFile.writeCPSR.mock.calls[0]).toStrictEqual([
       new Word(nzcvToNum(DEFAULT_ALU_FLAG) << 28),
+    ]);
+  });
+});
+
+describe("Halfword move", () => {
+  it("MOVT", () => {
+    const rd = 0x3;
+    const imm4 = 0x4;
+    const imm12 = 0x123;
+
+    const instruction = new Word(
+      imm12 | (rd << 12) | (imm4 << 16) | (1 << 22) | (0x3 << 24) | (0xe << 28),
+    );
+    simulator.execInstruction(instruction);
+
+    const newValue =
+      (DEFAULT_REGISTER_VALUE & 0xffff) | ((imm12 | (imm4 << 12)) << 16);
+    expect(mockRegisterFile.readCPSR).toBeCalled();
+    expect(mockRegisterFile.readRegister).toBeCalledWith(rd);
+
+    expect(mockRegisterFile.writeRegister).toBeCalledTimes(1);
+    expect(mockRegisterFile.writeRegister.mock.calls[0]).toStrictEqual([
+      rd,
+      new Word(newValue),
+    ]);
+  });
+
+  it("MOVW", () => {
+    const rd = 0x3;
+    const imm4 = 0x4;
+    const imm12 = 0x123;
+
+    const instruction = new Word(
+      imm12 | (rd << 12) | (imm4 << 16) | (0x3 << 24) | (0xe << 28),
+    );
+    simulator.execInstruction(instruction);
+
+    const newValue =
+      (DEFAULT_REGISTER_VALUE & 0xffff0000) | (imm12 | (imm4 << 12));
+    expect(mockRegisterFile.readCPSR).toBeCalled();
+    expect(mockRegisterFile.readRegister).toBeCalledWith(rd);
+
+    expect(mockRegisterFile.writeRegister).toBeCalledTimes(1);
+    expect(mockRegisterFile.writeRegister.mock.calls[0]).toStrictEqual([
+      rd,
+      new Word(newValue),
     ]);
   });
 });

@@ -161,15 +161,16 @@ describe("Test functions of Arm32ALU", () => {
           ShiftType.ROR,
           0,
           1,
+          0,
         );
         expect(shifted.view.getUint32(0)).toBe(2 ** 31 + 2 ** 30);
         expect(carry).toBe(0);
 
-        ({ shifted, carry } = alu.shiftC(new Word(1), ShiftType.ROR, 0, 1));
+        ({ shifted, carry } = alu.shiftC(new Word(1), ShiftType.ROR, 0, 1, 0));
         expect(shifted.view.getUint32(0)).toBe(2 ** 31);
         expect(carry).toBe(1);
 
-        ({ shifted, carry } = alu.shiftC(new Word(10), ShiftType.ROR, 0, 0));
+        ({ shifted, carry } = alu.shiftC(new Word(10), ShiftType.ROR, 0, 0, 0));
         expect(shifted.view.getUint32(0)).toBe(5);
         expect(carry).toBe(0);
       });
@@ -180,15 +181,16 @@ describe("Test functions of Arm32ALU", () => {
           ShiftType.LSL,
           1,
           1,
+          0,
         );
         expect(shifted.view.getUint32(0)).toBe(0);
         expect(carry).toBe(1);
 
-        ({ shifted, carry } = alu.shiftC(new Word(1), ShiftType.LSL, 4, 1));
+        ({ shifted, carry } = alu.shiftC(new Word(1), ShiftType.LSL, 4, 1, 0));
         expect(shifted.view.getUint32(0)).toBe(2 ** 4);
         expect(carry).toBe(0);
 
-        ({ shifted, carry } = alu.shiftC(new Word(10), ShiftType.LSL, 4, 0));
+        ({ shifted, carry } = alu.shiftC(new Word(10), ShiftType.LSL, 4, 0, 0));
         expect(shifted.view.getUint32(0)).toBe(10 * 2 ** 4);
         expect(carry).toBe(0);
 
@@ -196,6 +198,7 @@ describe("Test functions of Arm32ALU", () => {
           new Word(2 ** 31 - 1),
           ShiftType.LSL,
           4,
+          0,
           0,
         ));
         expect(shifted.view.getUint32(0)).toBe(4294967280);
@@ -207,6 +210,7 @@ describe("Test functions of Arm32ALU", () => {
           ShiftType.LSL,
           100,
           0,
+          0,
         ));
         expect(shifted.view.getUint32(0)).toBe(0);
         expect(carry).toBe(0);
@@ -216,14 +220,16 @@ describe("Test functions of Arm32ALU", () => {
           ShiftType.LSL,
           32,
           0,
+          0,
         ));
         expect(shifted.view.getUint32(0)).toBe(0);
-        expect(carry).toBe(0);
+        expect(carry).toBe(1);
 
         // shift 0
         ({ shifted, carry } = alu.shiftC(
           new Word(0x12345678),
           ShiftType.LSL,
+          0,
           0,
           0,
         ));
@@ -237,19 +243,26 @@ describe("Test functions of Arm32ALU", () => {
           ShiftType.LSR,
           10,
           1,
+          0,
         );
         expect(shifted.view.getUint32(0)).toBe(2 ** 20);
         expect(carry).toBe(0);
 
-        ({ shifted, carry } = alu.shiftC(new Word(10), ShiftType.LSR, 4, 1));
+        ({ shifted, carry } = alu.shiftC(new Word(10), ShiftType.LSR, 4, 1, 0));
         expect(shifted.view.getUint32(0)).toBe(0);
         expect(carry).toBe(1);
 
-        ({ shifted, carry } = alu.shiftC(new Word(-32), ShiftType.LSR, 5, 0));
+        ({ shifted, carry } = alu.shiftC(
+          new Word(-32),
+          ShiftType.LSR,
+          5,
+          0,
+          0,
+        ));
         expect(shifted.view.getUint32(0)).toBe(134217727);
         expect(carry).toBe(0);
 
-        ({ shifted, carry } = alu.shiftC(new Word(-1), ShiftType.LSR, 4, 0));
+        ({ shifted, carry } = alu.shiftC(new Word(-1), ShiftType.LSR, 4, 0, 0));
         expect(shifted.view.getUint32(0)).toBe(268435455);
         expect(carry).toBe(1);
 
@@ -258,6 +271,7 @@ describe("Test functions of Arm32ALU", () => {
           new Word(2 ** 31 - 1),
           ShiftType.LSR,
           100,
+          0,
           0,
         ));
         expect(shifted.view.getUint32(0)).toBe(0);
@@ -268,16 +282,29 @@ describe("Test functions of Arm32ALU", () => {
           ShiftType.LSR,
           32,
           0,
+          0,
         ));
         expect(shifted.view.getUint32(0)).toBe(0);
         expect(carry).toBe(0);
 
-        // shift 0
+        // shift LSR #0 is interpreted as LSR #32
         ({ shifted, carry } = alu.shiftC(
           new Word(0x12345678),
           ShiftType.LSR,
           0,
           0,
+          0,
+        ));
+        expect(shifted.view.getUint32(0)).toBe(0);
+        expect(carry).toBe(0);
+
+        // shift LSR r1 where r1 = 0 is intepreted as no shift
+        ({ shifted, carry } = alu.shiftC(
+          new Word(0x12345678),
+          ShiftType.LSR,
+          0,
+          0,
+          1,
         ));
         expect(shifted.view.getUint32(0)).toBe(0x12345678);
         expect(carry).toBe(0);
@@ -289,19 +316,26 @@ describe("Test functions of Arm32ALU", () => {
           ShiftType.ASR,
           10,
           1,
+          0,
         );
         expect(shifted.view.getUint32(0)).toBe(2 ** 20);
         expect(carry).toBe(0);
 
-        ({ shifted, carry } = alu.shiftC(new Word(10), ShiftType.ASR, 4, 1));
+        ({ shifted, carry } = alu.shiftC(new Word(10), ShiftType.ASR, 4, 1, 0));
         expect(shifted.view.getUint32(0)).toBe(0);
         expect(carry).toBe(1);
 
-        ({ shifted, carry } = alu.shiftC(new Word(-32), ShiftType.ASR, 5, 0));
+        ({ shifted, carry } = alu.shiftC(
+          new Word(-32),
+          ShiftType.ASR,
+          5,
+          0,
+          0,
+        ));
         expect(shifted.view.getUint32(0)).toBe(4294967295);
         expect(carry).toBe(0);
 
-        ({ shifted, carry } = alu.shiftC(new Word(-1), ShiftType.ASR, 4, 0));
+        ({ shifted, carry } = alu.shiftC(new Word(-1), ShiftType.ASR, 4, 0, 0));
         expect(shifted.view.getUint32(0)).toBe(4294967295);
         expect(carry).toBe(1);
 
@@ -311,6 +345,7 @@ describe("Test functions of Arm32ALU", () => {
           ShiftType.ASR,
           32,
           0,
+          0,
         ));
         expect(shifted.view.getUint32(0)).toBe(0xffffffff);
         expect(carry).toBe(1);
@@ -319,6 +354,7 @@ describe("Test functions of Arm32ALU", () => {
           new Word(0x80000000),
           ShiftType.ASR,
           100,
+          0,
           0,
         ));
         expect(shifted.view.getUint32(0)).toBe(0xffffffff);
@@ -330,6 +366,7 @@ describe("Test functions of Arm32ALU", () => {
           ShiftType.ASR,
           32,
           0,
+          0,
         ));
         expect(shifted.view.getUint32(0)).toBe(0x00000000);
         expect(carry).toBe(0);
@@ -339,16 +376,29 @@ describe("Test functions of Arm32ALU", () => {
           ShiftType.ASR,
           100,
           0,
+          0,
         ));
         expect(shifted.view.getUint32(0)).toBe(0x00000000);
         expect(carry).toBe(0);
 
-        // shift 0
+        // ASR #0 is interpreted as ASR #32
         ({ shifted, carry } = alu.shiftC(
           new Word(0x12345678),
           ShiftType.ASR,
           0,
           0,
+          0,
+        ));
+        expect(shifted.view.getUint32(0)).toBe(0);
+        expect(carry).toBe(0);
+
+        // But ASR r1 where r1 value is 0 is interpreted as no shift
+        ({ shifted, carry } = alu.shiftC(
+          new Word(0x12345678),
+          ShiftType.ASR,
+          0,
+          0,
+          1,
         ));
         expect(shifted.view.getUint32(0)).toBe(0x12345678);
         expect(carry).toBe(0);
@@ -360,19 +410,26 @@ describe("Test functions of Arm32ALU", () => {
           ShiftType.ROR,
           10,
           1,
+          0,
         );
         expect(shifted.view.getUint32(0)).toBe(2 ** 20);
         expect(carry).toBe(0);
 
-        ({ shifted, carry } = alu.shiftC(new Word(25), ShiftType.ROR, 4, 1));
+        ({ shifted, carry } = alu.shiftC(new Word(25), ShiftType.ROR, 4, 1, 0));
         expect(shifted.view.getUint32(0)).toBe(2415919105);
         expect(carry).toBe(1);
 
-        ({ shifted, carry } = alu.shiftC(new Word(-32), ShiftType.ROR, 5, 0));
+        ({ shifted, carry } = alu.shiftC(
+          new Word(-32),
+          ShiftType.ROR,
+          5,
+          0,
+          0,
+        ));
         expect(shifted.view.getUint32(0)).toBe(134217727);
         expect(carry).toBe(0);
 
-        ({ shifted, carry } = alu.shiftC(new Word(-1), ShiftType.ROR, 4, 0));
+        ({ shifted, carry } = alu.shiftC(new Word(-1), ShiftType.ROR, 4, 0, 0));
         expect(shifted.view.getUint32(0)).toBe(4294967295);
         expect(carry).toBe(1);
 
@@ -382,6 +439,7 @@ describe("Test functions of Arm32ALU", () => {
           ShiftType.ROR,
           32,
           0,
+          0,
         ));
         expect(shifted.view.getUint32(0)).toBe(0x00000001);
         expect(carry).toBe(0);
@@ -390,6 +448,7 @@ describe("Test functions of Arm32ALU", () => {
           new Word(0x00000001),
           ShiftType.ROR,
           100,
+          0,
           0,
         ));
         expect(shifted.view.getUint32(0)).toBe(0x10000000);
@@ -1852,6 +1911,8 @@ describe("Test functions of Arm32ALU", () => {
       expect(result.view.getUint32(0)).toBe(0xfffff000);
       expect(nzcv).toStrictEqual({ N: 1, Z: 0, C: 1, V: 0 });
 
+      // This is ROR rd, rn, rm where rm is 0
+      // This is interpreted as no shift
       alu.updateNZCV({ N: 0, Z: 0, C: 1, V: 0 });
       ({ result, nzcv } = alu.mov(
         new Word(0x000fffff),
@@ -1859,8 +1920,8 @@ describe("Test functions of Arm32ALU", () => {
         ShiftType.ROR,
       ));
       // shift = 16
-      expect(result.view.getUint32(0)).toBe(0x8007ffff);
-      expect(nzcv).toStrictEqual({ N: 1, Z: 0, C: 1, V: 0 });
+      expect(result.view.getUint32(0)).toBe(0x000fffff);
+      expect(nzcv).toStrictEqual({ N: 0, Z: 0, C: 1, V: 0 });
 
       ({ result, nzcv } = alu.mov(new Word(0x00000001), 2, ShiftType.LSL));
       // 0x1  << 2 = 0x4

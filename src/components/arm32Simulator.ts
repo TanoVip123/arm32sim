@@ -12,6 +12,8 @@ import {
 import { numToNZCV, nzcvToNum, type NZCV } from "../types/flags";
 import type { ArmALU } from "../interface/ALU";
 
+// Maybe this should be the worker or something
+// Need a simulator state
 export class Arm32Simulator {
   alu: ArmALU;
   registerFile: RegisterFile;
@@ -110,9 +112,9 @@ export class Arm32Simulator {
     const rn = this.registerFile.readRegister(extractBits(instruction, 16, 20));
     const rm = this.registerFile.readRegister(extractBits(instruction, 0, 4));
     const rd = extractBits(instruction, 12, 16);
-    const shiftAmount = this.registerFile
-      .readRegister(extractBits(instruction, 8, 12))
-      .view.getUint32(0);
+    const shiftAmount = this.registerFile.readRegister(
+      extractBits(instruction, 8, 12),
+    );
     const shiftType = extractBits(instruction, 5, 7);
 
     let result: Word;
@@ -487,14 +489,14 @@ export class Arm32Simulator {
     const rn = this.registerFile.readRegister(rn_index);
     const rt_index = extractBits(instruction, 12, 16);
     const isByte = extractBits(instruction, 22, 23);
-    // is Op2 imm12 opr reg shift imm (documentation doesn't have register shift register)
+    // Op2 is imm12 or reg shift imm (documentation doesn't have register shift register)
     let offset: Word | undefined = undefined;
 
     // Calculate Offset
     if (extractBits(instruction, 25, 26)) {
       if (rn_index == 15) {
         throw new Error(
-          "LDR: There is no register shift format for when Rn is PC",
+          "LDR: PC can not be used as based for a register offset",
         );
       }
       const rm = this.registerFile.readRegister(extractBits(instruction, 0, 4));
@@ -554,6 +556,11 @@ export class Arm32Simulator {
 
     // Calculate Offset
     if (extractBits(instruction, 25, 26)) {
+      if (rn_index == 15) {
+        throw new Error(
+          "STR: PC can not be used as based for a register offset",
+        );
+      }
       const rm = this.registerFile.readRegister(extractBits(instruction, 0, 4));
       const type = extractBits(instruction, 5, 7);
       const shiftAmount = extractBits(instruction, 7, 12);
@@ -703,11 +710,11 @@ export class Arm32Simulator {
   }
 
   execBranch(instruction: Word) {
-    const offset: Word = new Word(extractBits(instruction, 0, 24) << 2);
+    const offset: Word = new Word((extractBits(instruction, 0, 24) << 8) >> 6);
     const isLink = extractBits(instruction, 24, 25);
 
     const PC = this.registerFile.readRegister(15).view.getUint32(0) & ~0x3;
-    const targetAddress = PC + offset.view.getUint32(0);
+    const targetAddress = PC + offset.view.getInt32(0);
     // BLX immediate
     if (isLink) {
       // return to the next instruction after this instruction (otherwise you have an infinite loop)
@@ -740,6 +747,19 @@ export class Arm32Simulator {
         "Only BX and BLX reg in Miscellaneous instructions are implemented",
       );
     }
+  }
+
+  execHalfWordMov(instruction: Word) {
+    const isTop = extractBits(instruction, 22, 23);
+    const imm12 = extractBits(instruction, 0, 12);
+    const imm4 = extractBits(instruction, 16, 20);
+    const rd_index = extractBits(instruction, 12, 16);
+    const rd = this.registerFile.readRegister(rd_index);
+
+    const imm16 = (imm4 << 12) | imm12;
+
+    const newValue = writeBits(rd, imm16, isTop ? 16 : 0, isTop ? 32 : 16);
+    this.registerFile.writeRegister(rd_index, new Word(newValue));
   }
 
   execInstruction(instruction: Word) {
@@ -800,10 +820,10 @@ export class Arm32Simulator {
       } else {
         const op1 = extractBits(instruction, 20, 25);
         if (op1 == 0b10000) {
-          console.log("16-bit immediate load, MOV(immediate)");
+          this.execHalfWordMov(instruction);
           return;
         } else if (op1 == 0b10100) {
-          console.log("High halfword 16-bit immediate load, MOVT");
+          this.execHalfWordMov(instruction);
           return;
         } else if ((op1 & 0b11011) == 0b10010) {
           console.log("MSR (immediate), and hints");

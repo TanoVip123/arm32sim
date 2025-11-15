@@ -16,13 +16,14 @@ export class Arm32ALU implements ArmALU {
     rn: Word,
     rm: Word,
     shift: number | Word,
-    shiftType: ShiftType,
+    shiftType: number,
   ): { result: Word; nzcv: NZCV } {
     const { shifted, carry } = this.shiftC(
       rm,
       shiftType,
       this.unpackShiftAmount(shift),
       this.nzcv.C,
+      toFlag(Number(shift instanceof Word)),
     );
     const result = rn.view.getUint32(0) & shifted.view.getUint32(0);
     return {
@@ -40,13 +41,14 @@ export class Arm32ALU implements ArmALU {
     rn: Word,
     rm: Word,
     shift: number | Word,
-    shiftType: ShiftType,
+    shiftType: number,
   ): { result: Word; nzcv: NZCV } {
     const { shifted, carry } = this.shiftC(
       rm,
       shiftType,
       this.unpackShiftAmount(shift),
       this.nzcv.C,
+      toFlag(Number(shift instanceof Word)),
     );
 
     const result = rn.view.getUint32(0) ^ shifted.view.getUint32(0);
@@ -65,13 +67,14 @@ export class Arm32ALU implements ArmALU {
     rn: Word,
     rm: Word,
     shift: number | Word,
-    shiftType: ShiftType,
+    shiftType: number,
   ): { result: Word; nzcv: NZCV } {
     const { shifted } = this.shiftC(
       rm,
       shiftType,
       this.unpackShiftAmount(shift),
       this.nzcv.C,
+      toFlag(Number(shift instanceof Word)),
     );
     const { result, carry, overflow } = this.addWithCarry(
       rn,
@@ -94,13 +97,14 @@ export class Arm32ALU implements ArmALU {
     rn: Word,
     rm: Word,
     shift: number | Word,
-    shiftType: ShiftType,
+    shiftType: number,
   ): { result: Word; nzcv: NZCV } {
     const { shifted } = this.shiftC(
       rm,
       shiftType,
       this.unpackShiftAmount(shift),
       this.nzcv.C,
+      toFlag(Number(shift instanceof Word)),
     );
     const { result, carry, overflow } = this.addWithCarry(
       new Word(~rn.view.getUint32(0)),
@@ -123,13 +127,14 @@ export class Arm32ALU implements ArmALU {
     rn: Word,
     rm: Word,
     shift: number | Word,
-    shiftType: ShiftType,
+    shiftType: number,
   ): { result: Word; nzcv: NZCV } {
     const { shifted } = this.shiftC(
       rm,
       shiftType,
       this.unpackShiftAmount(shift),
       this.nzcv.C,
+      toFlag(Number(shift instanceof Word)),
     );
     const { result, carry, overflow } = this.addWithCarry(rn, shifted, 0);
 
@@ -148,13 +153,14 @@ export class Arm32ALU implements ArmALU {
     rn: Word,
     rm: Word,
     shift: number | Word,
-    shiftType: ShiftType,
+    shiftType: number,
   ): { result: Word; nzcv: NZCV } {
     const { shifted } = this.shiftC(
       rm,
       shiftType,
       this.unpackShiftAmount(shift),
       this.nzcv.C,
+      toFlag(Number(shift instanceof Word)),
     );
     const { result, carry, overflow } = this.addWithCarry(
       rn,
@@ -177,13 +183,14 @@ export class Arm32ALU implements ArmALU {
     rn: Word,
     rm: Word,
     shift: number | Word,
-    shiftType: ShiftType,
+    shiftType: number,
   ): { result: Word; nzcv: NZCV } {
     const { shifted } = this.shiftC(
       rm,
       shiftType,
       this.unpackShiftAmount(shift),
       this.nzcv.C,
+      toFlag(Number(shift instanceof Word)),
     );
     const { result, carry, overflow } = this.addWithCarry(
       rn,
@@ -206,13 +213,14 @@ export class Arm32ALU implements ArmALU {
     rn: Word,
     rm: Word,
     shift: number | Word,
-    shiftType: ShiftType,
+    shiftType: number,
   ): { result: Word; nzcv: NZCV } {
     const { shifted } = this.shiftC(
       rm,
       shiftType,
       this.unpackShiftAmount(shift),
       this.nzcv.C,
+      toFlag(Number(shift instanceof Word)),
     );
     const { result, carry, overflow } = this.addWithCarry(
       new Word(~rn.view.getUint32(0)),
@@ -235,13 +243,14 @@ export class Arm32ALU implements ArmALU {
     rn: Word,
     rm: Word,
     shift: number | Word,
-    shiftType: ShiftType,
+    shiftType: number,
   ): { result: Word; nzcv: NZCV } {
     const { shifted, carry } = this.shiftC(
       rm,
       shiftType,
       this.unpackShiftAmount(shift),
       this.nzcv.C,
+      toFlag(Number(shift instanceof Word)),
     );
     const result = rn.view.getUint32(0) | shifted.view.getUint32(0);
 
@@ -260,13 +269,14 @@ export class Arm32ALU implements ArmALU {
     rn: Word,
     rm: Word,
     shift: number | Word,
-    shiftType: ShiftType,
+    shiftType: number,
   ): { result: Word; nzcv: NZCV } {
     const { shifted, carry } = this.shiftC(
       rm,
       shiftType,
       this.unpackShiftAmount(shift),
       this.nzcv.C,
+      toFlag(Number(shift instanceof Word)),
     );
     const result = rn.view.getUint32(0) & ~shifted.view.getUint32(0);
     return {
@@ -283,13 +293,14 @@ export class Arm32ALU implements ArmALU {
   mvn(
     rm: Word,
     shift: number | Word,
-    shiftType: ShiftType,
+    shiftType: number,
   ): { result: Word; nzcv: NZCV } {
     const { shifted, carry } = this.shiftC(
       rm,
       shiftType,
       this.unpackShiftAmount(shift),
       this.nzcv.C,
+      toFlag(Number(shift instanceof Word)),
     );
     const result = ~shifted.view.getUint32(0);
     return {
@@ -306,13 +317,14 @@ export class Arm32ALU implements ArmALU {
   mov(
     rm: Word,
     shift: number | Word,
-    shiftType: ShiftType,
+    shiftType: number,
   ): { result: Word; nzcv: NZCV } {
     const { shifted, carry } = this.shiftC(
       rm,
       shiftType,
       this.unpackShiftAmount(shift),
       this.nzcv.C,
+      toFlag(Number(shift instanceof Word)),
     );
 
     return {
@@ -734,6 +746,7 @@ export class Arm32ALU implements ArmALU {
       ShiftType.ROR,
       shiftAmount * 2,
       carry,
+      0,
     );
     return { imm32, carry: carryOut };
   }
@@ -760,19 +773,39 @@ export class Arm32ALU implements ArmALU {
 
   shiftC(
     input: Word,
-    type: ShiftType,
+    type: number,
     shift: number,
     carry: Flag,
+    isRegisterShift: Flag,
   ): { shifted: Word; carry: Flag } {
     // Carry is set to the last bit shift out
     let carryOut: Flag = carry;
     let value = input.view.getUint32(0);
+
     if (shift == 0) {
-      if (type === ShiftType.ROR) {
-        carryOut = toFlag(value & 1);
-        value = (value >>> 1) | (carry << 31);
+      if (!isRegisterShift) {
+        // Special interperation of ROR #0. They becomes RRX
+        if (type === ShiftType.ROR) {
+          carryOut = toFlag(value & 1);
+          value = (value >>> 1) | (carry << 31);
+          return { shifted: new Word(value), carry: carryOut };
+        }
+
+        // Special interperation of LSR #0 and ASR #0. They becomes LSR #32 and ASR #32
+        else if (type === ShiftType.LSR || type === ShiftType.ASR) {
+          shift = 32;
+        }
+
+        //LSL #0 mean no shift. Nothing to change
+        else {
+          return { shifted: new Word(value), carry: carryOut };
+        }
       }
-      return { shifted: new Word(value), carry: carryOut };
+
+      // For register shift register, if the register value is 0, that means no shift
+      else {
+        return { shifted: new Word(value), carry: carryOut };
+      }
     }
 
     // in typescript all bitwise operation is masked by the width of the input
@@ -780,11 +813,11 @@ export class Arm32ALU implements ArmALU {
     if (shift >= 32) {
       switch (type) {
         case ShiftType.LSL:
-          carryOut = 0;
+          carryOut = shift === 32 ? toFlag(value & 1) : 0;
           value = 0;
           break;
         case ShiftType.LSR:
-          carryOut = 0;
+          carryOut = shift === 32 ? toFlag((value >>> 31) & 1) : 0;
           value = 0;
           break;
         case ShiftType.ASR:
