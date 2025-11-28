@@ -5,4 +5,7 @@ export interface Memory {
   writeWord(offset: Word, content: Word): void;
   readBuffer(offset: Word, length: number): ArrayBuffer;
   writeBuffer(offset: Word, content: ArrayBuffer): void;
+  createCheckpoint(): void;
+  goBackToCheckpoint(): void;
+  reset(): void;
 }

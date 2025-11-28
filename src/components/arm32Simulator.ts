@@ -11,17 +11,26 @@ import {
 } from "../types/instructions";
 import { numToNZCV, nzcvToNum, type NZCV } from "../types/flags";
 import type { ArmALU } from "../interface/ALU";
+import type { ArmSimulator } from "../interface/simulator";
 
 // Maybe this should be the worker or something
 // Need a simulator state
-export class Arm32Simulator {
+export class Arm32Simulator implements ArmSimulator {
   alu: ArmALU;
   registerFile: RegisterFile;
   memory: Memory;
+  isDone: boolean;
+  isBranch: boolean;
   constructor(alu: ArmALU, registerFile: RegisterFile, memory: Memory) {
     this.alu = alu;
     this.registerFile = registerFile;
     this.memory = memory;
+    this.isDone = false;
+    this.isBranch = false;
+  }
+
+  reset(){
+    this.isDone = false;
   }
 
   checkCondition(condition: number, NZCV: NZCV): boolean {
@@ -171,7 +180,6 @@ export class Arm32Simulator {
       default:
         throw new Error("Unknown operation");
     }
-
     // Should apply to all operation. TST, TEQ, CMP, CMN automatically have S of 1
     if (shouldWriteCPSR) {
       const cpsr = this.registerFile.readCPSR();
@@ -192,7 +200,6 @@ export class Arm32Simulator {
     const shouldWriteCPSR = Boolean(extractBits(instruction, 20, 21));
     const rn = this.registerFile.readRegister(extractBits(instruction, 16, 20));
     const rm = this.registerFile.readRegister(extractBits(instruction, 0, 4));
-
     const rd = extractBits(instruction, 12, 16);
     const shiftType = extractBits(instruction, 5, 7);
     const shiftAmount = extractBits(instruction, 7, 12);
@@ -573,7 +580,6 @@ export class Arm32Simulator {
       ? rn.view.getUint32(0) + offset.view.getUint32(0)
       : rn.view.getUint32(0) - offset.view.getUint32(0);
     const address = index ? offset_addr : rn.view.getUint32(0);
-
     if (isByte) {
       const dataToStore = new Uint8Array([rt.view.getUint8(3)]);
       this.memory.writeBuffer(new Word(address), dataToStore.buffer);
@@ -710,6 +716,7 @@ export class Arm32Simulator {
   }
 
   execBranch(instruction: Word) {
+    this.isBranch = true
     const offset: Word = new Word((extractBits(instruction, 0, 24) << 8) >> 6);
     const isLink = extractBits(instruction, 24, 25);
 
@@ -732,10 +739,12 @@ export class Arm32Simulator {
 
     //BX
     if (op2 == 0b001 && op == 0b01) {
+      this.isBranch = true
       this.registerFile.writeRegister(15, this.registerFile.readRegister(rm));
     }
     //BLX register
     else if (op2 == 0b011 && op == 0b01) {
+      this.isBranch = true
       const target = this.registerFile.readRegister(rm);
       const nextInstruction =
         this.registerFile.readRegister(15).view.getUint32(0) + 4;
@@ -762,7 +771,43 @@ export class Arm32Simulator {
     this.registerFile.writeRegister(rd_index, new Word(newValue));
   }
 
+  isSimulationDone(): boolean {
+    return this.isDone;
+  }
+
+  runOnce() {
+    // return if reach end of program
+    if (this.isDone)
+    {
+      return;
+    }
+
+    const pc = this.registerFile.readRegister(15)
+    const instruction = this.memory.readWord(pc)
+    // if we see an instruction that is 0, 
+    if(instruction.view.getUint32(0) == 0xFFFFFFFF)
+    {
+      this.isDone = true
+      return
+    }
+
+    this.execInstruction(instruction)
+    // Do not modified PC if we execute a branch instruction since these instruction would have already modified PC
+    // just silently clear the branch flag
+    if(!this.isBranch)
+    {
+      this.registerFile.writeRegister(15, new Word(pc.view.getUint32(0) + 4))
+    } else {
+      this.isBranch = false
+    }
+  }
+
   execInstruction(instruction: Word) {
+    if (instruction.view.getUint32(0) === 0) {
+      this.isDone = true;
+      return;
+    }
+
     const nzcvFlag: NZCV = numToNZCV(
       extractBits(this.registerFile.readCPSR(), 28, 32),
     );
@@ -788,11 +833,13 @@ export class Arm32Simulator {
           }
         } else if (op2 == 0b1011 || (op2 & 0b1101) == 0b1101) {
           if ((op1 & 0b10010) == 0b00010) {
-            console.log("Extra load/store instructions, unprivileged");
-            return;
+            throw new Error(
+              "Extra load/store instructions, unprivileged are NOT implemented",
+            );
           } else {
-            console.log("Extra load/store instructions");
-            return;
+            throw new Error(
+              "Extra load/store instructions are NOT implemented",
+            );
           }
         }
 
@@ -801,8 +848,9 @@ export class Arm32Simulator {
             this.execMiscellaneous(instruction);
             return;
           } else if ((op2 & 0b1001) == 0b1001) {
-            console.log("Halfword multiply and multiply accumulate");
-            return;
+            throw new Error(
+              "Halfword multiply and multiply accumulate instructions are NOT implemented",
+            );
           }
         } else {
           // Register shift imm (AKA Data-processing (register))
@@ -826,8 +874,9 @@ export class Arm32Simulator {
           this.execHalfWordMov(instruction);
           return;
         } else if ((op1 & 0b11011) == 0b10010) {
-          console.log("MSR (immediate), and hints");
-          return;
+          throw new Error(
+            "MSR (immediate), and hints instructions are NOT imnplemented",
+          );
         } else if ((op1 & 0b11001) != 0b10000) {
           this.execDataProcessingImm(instruction);
           return;
@@ -850,7 +899,9 @@ export class Arm32Simulator {
       // Block L/S
       else {
         if (extractBits(instruction, 22, 23)) {
-          throw new Error("User registers mode for block L/S is not available");
+          throw new Error(
+            "User registers mode for block L/S is NOT implemented",
+          );
         }
 
         if (extractBits(instruction, 20, 21)) {
@@ -862,7 +913,7 @@ export class Arm32Simulator {
         }
       }
     } else {
-      console.log("SWI");
+      throw new Error("Interupts (SWI) are NOT implemented");
     }
   }
 }

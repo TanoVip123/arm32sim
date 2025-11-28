@@ -4,6 +4,7 @@ import {
   ASCIZ_DIRECTIVE,
   STRING_DIRECTIVE,
   INT_DIRECTIVE,
+  CODE_END,
 } from "../constants/directives";
 import { CODE_SEGMENT } from "../constants/SegmentPosition";
 import { encodeImm12, getValueIfKeyExists } from "../function/helper";
@@ -73,6 +74,14 @@ export class Arm32Assembler implements ArmAssembler {
     this.subroutineLabels = new Map<string, number>();
     this.dataBlobs = [];
     this.instructionBlobs = new Map<number, InstructionBlob>();
+  }
+
+  getAssembledData(): number[] {
+    return this.dataBlobs;
+  }
+
+  getAssembledCode(): Map<number, InstructionBlob> {
+    return this.instructionBlobs;
   }
 
   assemble(code: string): {
@@ -1109,7 +1118,7 @@ export class Arm32Assembler implements ArmAssembler {
       }
 
       // ignore comment
-      if (line.startsWith("//")) {
+      if (line.startsWith(";")) {
         continue;
       }
 
@@ -1179,6 +1188,7 @@ export class Arm32Assembler implements ArmAssembler {
         this.instructionBlobs.set(pc, newInstruction[i]);
         pc += 4;
       }
+      this.instructionBlobs.set(pc, {encode: 0xFFFFFFFF, origin: CODE_END})
     }
 
     toFix.forEach((branch_pc) => {
@@ -1209,7 +1219,7 @@ export class Arm32Assembler implements ArmAssembler {
       }
 
       //ignore comment
-      if (lines[i].startsWith("//")) {
+      if (lines[i].startsWith(";")) {
         continue;
       }
       const line = lines[i].trim();

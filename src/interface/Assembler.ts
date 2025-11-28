@@ -5,4 +5,7 @@ export interface ArmAssembler {
     data: number[];
     instructions: Map<number, InstructionBlob>;
   };
+  getAssembledData(): number[];
+  getAssembledCode(): Map<number, InstructionBlob>;
+  reset(): void;
 }

@@ -8,4 +8,6 @@ export interface RegisterFile {
   // Special instruction to assess CPSR to not confused with regular register
   readCPSR(): Word;
   writeCPSR(word: Word): void;
+  getAllregisters(): Word[];
+  reset(): void;
 }

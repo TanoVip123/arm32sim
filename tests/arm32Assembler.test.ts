@@ -13,6 +13,7 @@ import {
 } from "../src/types/instructions";
 import { Condition } from "../src/types/conditions";
 import { getValueIfKeyExists } from "../src/function/helper";
+import { CODE_END } from "../src/constants/directives";
 const assembler = new Arm32Assembler();
 let pc = CODE_SEGMENT;
 
@@ -44,10 +45,14 @@ describe("3Ops Data processing instruction assemble", () => {
       const rn = TextToRegister.R2;
       const rm = TextToRegister.R3;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op} R1, R2, R3`,
         encode: (0xe << 28) | (opCode << 21) | (rn << 16) | (rd << 12) | rm,
+      });
+      expect(instructions.get(pc+4)).toStrictEqual({
+        origin: CODE_END,
+        encode: 0xFFFFFFFF,
       });
     });
 
@@ -62,7 +67,7 @@ describe("3Ops Data processing instruction assemble", () => {
       const rn = TextToRegister.R2;
       const rm = TextToRegister.R3;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op} R1, R2, R3, RRX`,
         encode:
@@ -87,7 +92,7 @@ describe("3Ops Data processing instruction assemble", () => {
       const rn = TextToRegister.R2;
       const rm = TextToRegister.R3;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op} R2, R2, R3, ASR #2`,
         encode:
@@ -113,7 +118,7 @@ describe("3Ops Data processing instruction assemble", () => {
       const rm = TextToRegister.R5;
       const rs = TextToRegister.R6;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op} R4, R5, R5, ROR R6`,
         encode:
@@ -138,7 +143,7 @@ describe("3Ops Data processing instruction assemble", () => {
       const rn = TextToRegister.R8;
       const imm = 0xeff; // 0xFF ROR 28
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op} R7, r8, #4080`,
         encode:
@@ -160,7 +165,7 @@ describe("3Ops Data processing instruction assemble", () => {
       const rd = TextToRegister.R10;
       const rn = TextToRegister.R11;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(5);
+      expect(instructions.size).toBe(6);
       expect(instructions.get(pc)).toStrictEqual({
         origin: "PUSH {R12}",
         encode:
@@ -200,7 +205,7 @@ describe("3Ops Data processing instruction assemble", () => {
       const rd = TextToRegister.R1;
       const rn = TextToRegister.R2;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(5);
+      expect(instructions.size).toBe(6);
       expect(instructions.get(pc)).toStrictEqual({
         origin: "PUSH {R12}",
         encode:
@@ -247,7 +252,7 @@ describe("3Ops Data processing instruction assemble", () => {
       const rn = TextToRegister.R2;
       const rm = TextToRegister.R3;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op}S r1, r2, r3`,
         encode:
@@ -271,7 +276,7 @@ describe("3Ops Data processing instruction assemble", () => {
         const rn = TextToRegister.R2;
         const rm = TextToRegister.R4;
         const { instructions } = assembler.assemble(code);
-        expect(instructions.size).toBe(1);
+        expect(instructions.size).toBe(2);
         expect(instructions.get(pc)).toStrictEqual({
           origin: `${op}${cond} R1, R2, R4`,
           encode:
@@ -293,7 +298,7 @@ describe("3Ops Data processing instruction assemble", () => {
         const rn = TextToRegister.R2;
         const rm = TextToRegister.R4;
         const { instructions } = assembler.assemble(code);
-        expect(instructions.size).toBe(1);
+        expect(instructions.size).toBe(2);
         expect(instructions.get(pc)).toStrictEqual({
           origin: `${op}S${cond} R1, R2, R4`,
           encode:
@@ -322,7 +327,7 @@ describe("Test instruction assemble", () => {
       const rn = TextToRegister.R2;
       const rm = TextToRegister.R3;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op} R2, R3`,
         encode: (0xe << 28) | (opCode << 21) | (1 << 20) | (rn << 16) | rm,
@@ -339,7 +344,7 @@ describe("Test instruction assemble", () => {
       const rn = TextToRegister.R3;
       const rm = TextToRegister.R3;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op} R3, R3, RRX`,
         encode:
@@ -363,7 +368,7 @@ describe("Test instruction assemble", () => {
       const rn = TextToRegister.R5;
       const rm = TextToRegister.R6;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op} R5, R6, LSL #10`,
         encode:
@@ -388,7 +393,7 @@ describe("Test instruction assemble", () => {
       const rm = TextToRegister.R5;
       const rs = TextToRegister.R6;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op} R4, R5, ROR R6`,
         encode:
@@ -412,7 +417,7 @@ describe("Test instruction assemble", () => {
       const rn = TextToRegister.R8;
       const imm = 0x001; // 0xFF ROR 28
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op} r8, #1`,
         encode:
@@ -433,7 +438,7 @@ describe("Test instruction assemble", () => {
       const opCode = getValueIfKeyExists(DataProcessing, op.toUpperCase());
       const rn = TextToRegister.R11;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(5);
+      expect(instructions.size).toBe(6);
       expect(instructions.get(pc)).toStrictEqual({
         origin: "PUSH {R12}",
         encode:
@@ -472,7 +477,7 @@ describe("Test instruction assemble", () => {
       const opCode = getValueIfKeyExists(DataProcessing, op.toUpperCase());
       const rn = TextToRegister.R2;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(5);
+      expect(instructions.size).toBe(6);
       expect(instructions.get(pc)).toStrictEqual({
         origin: "PUSH {R12}",
         encode:
@@ -519,7 +524,7 @@ describe("Test instruction assemble", () => {
         const rn = TextToRegister.R1;
         const rm = TextToRegister.R4;
         const { instructions } = assembler.assemble(code);
-        expect(instructions.size).toBe(1);
+        expect(instructions.size).toBe(2);
         expect(instructions.get(pc)).toStrictEqual({
           origin: `${op}${cond} R1, R4`,
           encode:
@@ -544,7 +549,7 @@ describe("MVN instruction assemble", () => {
     const rd = TextToRegister.R2;
     const rm = TextToRegister.R3;
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "MVN R2, R3",
       encode: (0xe << 28) | (opCode << 21) | (rd << 12) | rm,
@@ -561,7 +566,7 @@ describe("MVN instruction assemble", () => {
     const rd = TextToRegister.R3;
     const rm = TextToRegister.R3;
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "MVN R3, R3, RRX",
       encode: (0xe << 28) | (opCode << 21) | (rd << 12) | (shiftType << 5) | rm,
@@ -579,7 +584,7 @@ describe("MVN instruction assemble", () => {
     const rd = TextToRegister.R5;
     const rm = TextToRegister.R6;
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "MVN R5, R6, LSL #12",
       encode:
@@ -603,7 +608,7 @@ describe("MVN instruction assemble", () => {
     const rm = TextToRegister.R5;
     const rs = TextToRegister.R6;
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "MVN R4, R5, ROR R6",
       encode:
@@ -626,7 +631,7 @@ describe("MVN instruction assemble", () => {
     const rd = TextToRegister.R8;
     const imm = 0xfca; //
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "MVN r8, #808",
       encode: (0xe << 28) | (1 << 25) | (opCode << 21) | (rd << 12) | imm,
@@ -641,7 +646,7 @@ describe("MVN instruction assemble", () => {
     const opCode = DataProcessing.MVN;
     const rd = TextToRegister.R11;
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(5);
+    expect(instructions.size).toBe(6);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "PUSH {R12}",
       encode: (0xe << 28) | (0x9 << 24) | (0x1 << 21) | (0xd << 16) | (1 << 12),
@@ -679,7 +684,7 @@ describe("MVN instruction assemble", () => {
     const opCode = DataProcessing.MVN;
     const rd = TextToRegister.R2;
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(5);
+    expect(instructions.size).toBe(6);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "PUSH {R12}",
       encode: (0xe << 28) | (0x9 << 24) | (0x1 << 21) | (0xd << 16) | (1 << 12),
@@ -724,7 +729,7 @@ describe("MVN instruction assemble", () => {
     const rd = TextToRegister.R1;
     const rm = TextToRegister.R2;
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "MVNS r1, r2",
       encode: (0xe << 28) | (opCode << 21) | (1 << 20) | (rd << 12) | rm,
@@ -741,7 +746,7 @@ describe("MVN instruction assemble", () => {
       const rd = TextToRegister.R1;
       const rm = TextToRegister.R2;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `MVN${cond} R1, R2`,
         encode:
@@ -761,7 +766,7 @@ describe("MVN instruction assemble", () => {
       const rd = TextToRegister.R1;
       const rm = TextToRegister.R4;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `MVNS${cond} R1, R4`,
         encode:
@@ -785,7 +790,7 @@ describe("MOV instruction assemble", () => {
     const rd = TextToRegister.R2;
     const rm = TextToRegister.R3;
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "MOV R2, R3",
       encode: (0xe << 28) | (opCode << 21) | (rd << 12) | rm,
@@ -801,7 +806,7 @@ describe("MOV instruction assemble", () => {
     const rd = TextToRegister.R8;
     const imm = 0xfca; //
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "MOV r8, #808",
       encode: (0xe << 28) | (1 << 25) | (opCode << 21) | (rd << 12) | imm,
@@ -816,7 +821,7 @@ describe("MOV instruction assemble", () => {
     const opCode = DataProcessing.MOV;
     const rd = TextToRegister.R11;
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(5);
+    expect(instructions.size).toBe(6);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "PUSH {R12}",
       encode: (0xe << 28) | (0x9 << 24) | (0x1 << 21) | (0xd << 16) | (1 << 12),
@@ -854,7 +859,7 @@ describe("MOV instruction assemble", () => {
     const opCode = DataProcessing.MOV;
     const rd = TextToRegister.R2;
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(5);
+    expect(instructions.size).toBe(6);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "PUSH {R12}",
       encode: (0xe << 28) | (0x9 << 24) | (0x1 << 21) | (0xd << 16) | (1 << 12),
@@ -899,7 +904,7 @@ describe("MOV instruction assemble", () => {
     const rd = TextToRegister.R1;
     const rm = TextToRegister.R2;
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "MOVS r1, r2",
       encode: (0xe << 28) | (opCode << 21) | (1 << 20) | (rd << 12) | rm,
@@ -916,7 +921,7 @@ describe("MOV instruction assemble", () => {
       const rd = TextToRegister.R1;
       const rm = TextToRegister.R2;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `MOV${cond} R1, R2`,
         encode:
@@ -936,7 +941,7 @@ describe("MOV instruction assemble", () => {
       const rd = TextToRegister.R1;
       const rm = TextToRegister.R4;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `MOVS${cond} R1, R4`,
         encode:
@@ -964,7 +969,7 @@ describe("Shift Instruction RRX case instruction assemble", () => {
       const rm = TextToRegister.R2;
       const imm = 3;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op} R1, R2, #3`,
         encode:
@@ -988,7 +993,7 @@ describe("Shift Instruction RRX case instruction assemble", () => {
       const rbase = TextToRegister.R2;
       const rshift = TextToRegister.R5;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op} R1, R2, R5`,
         encode:
@@ -1013,7 +1018,7 @@ describe("Shift Instruction RRX case instruction assemble", () => {
       const rd = TextToRegister.R1;
       const rbase = TextToRegister.R2;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op}S r1, r2, #16`,
         encode:
@@ -1039,7 +1044,7 @@ describe("Shift Instruction RRX case instruction assemble", () => {
         const rbase = TextToRegister.R2;
         const rs = TextToRegister.R4;
         const { instructions } = assembler.assemble(code);
-        expect(instructions.size).toBe(1);
+        expect(instructions.size).toBe(2);
         expect(instructions.get(pc)).toStrictEqual({
           origin: `${op}${cond} R1, R2, R4`,
           encode:
@@ -1064,7 +1069,7 @@ describe("Shift Instruction RRX case instruction assemble", () => {
         const rbase = TextToRegister.R2;
         const imm = 31;
         const { instructions } = assembler.assemble(code);
-        expect(instructions.size).toBe(1);
+        expect(instructions.size).toBe(2);
         expect(instructions.get(pc)).toStrictEqual({
           origin: `${op}S${cond} R1, R2, #31`,
           encode:
@@ -1092,7 +1097,7 @@ describe("Shift Instruction processing instruction assemble", () => {
     const rd = TextToRegister.R1;
     const rm = TextToRegister.R2;
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "RRX R1, R2",
       encode: (0xe << 28) | (opCode << 21) | (rd << 12) | (shiftType << 5) | rm,
@@ -1109,7 +1114,7 @@ describe("Shift Instruction processing instruction assemble", () => {
     const rd = TextToRegister.R1;
     const rbase = TextToRegister.R2;
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "RRXS r1, r2",
       encode:
@@ -1133,7 +1138,7 @@ describe("Shift Instruction processing instruction assemble", () => {
       const rd = TextToRegister.R1;
       const rbase = TextToRegister.R2;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `RRX${cond} R1, R2`,
         encode:
@@ -1155,7 +1160,7 @@ describe("Shift Instruction processing instruction assemble", () => {
       const rd = TextToRegister.R1;
       const rbase = TextToRegister.R2;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `RRXS${cond} R1, R2`,
         encode:
@@ -1181,7 +1186,7 @@ describe("MUL instruction assemble", () => {
     const rn = TextToRegister.R2;
     const rm = TextToRegister.R3;
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "MUL R1, R2, R3",
       encode:
@@ -1199,7 +1204,7 @@ describe("MUL instruction assemble", () => {
     const rn = TextToRegister.R2;
     const rm = TextToRegister.R3;
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "MULS R1, R2, R3",
       encode:
@@ -1224,7 +1229,7 @@ describe("MUL instruction assemble", () => {
       const rn = TextToRegister.R2;
       const rm = TextToRegister.R3;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `MUL${cond} R1, R2, R3`,
         encode:
@@ -1247,7 +1252,7 @@ describe("MUL instruction assemble", () => {
       const rn = TextToRegister.R2;
       const rm = TextToRegister.R3;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `MULS${cond} R1, R2, R3`,
         encode:
@@ -1275,7 +1280,7 @@ describe("MLA instruction assemble", () => {
     const rm = TextToRegister.R3;
     const ra = TextToRegister.R4;
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "MLA R1, R2, R3, R4",
       encode:
@@ -1300,7 +1305,7 @@ describe("MLA instruction assemble", () => {
     const rm = TextToRegister.R3;
     const ra = TextToRegister.R4;
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "MLAS R1, R2, R3, R4",
       encode:
@@ -1327,7 +1332,7 @@ describe("MLA instruction assemble", () => {
       const rm = TextToRegister.R3;
       const ra = TextToRegister.R4;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `MLA${cond} R1, R2, R3, R4`,
         encode:
@@ -1352,7 +1357,7 @@ describe("MLA instruction assemble", () => {
       const rm = TextToRegister.R3;
       const ra = TextToRegister.R4;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `MLAS${cond} R1, R2, R3, R4`,
         encode:
@@ -1381,7 +1386,7 @@ describe("MLS instruction assemble", () => {
     const rm = TextToRegister.R3;
     const ra = TextToRegister.R4;
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "MLS R1, R2, R3, R4",
       encode:
@@ -1407,7 +1412,7 @@ describe("MLS instruction assemble", () => {
       const rm = TextToRegister.R3;
       const ra = TextToRegister.R4;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `MLS${cond} R1, R2, R3, R4`,
         encode:
@@ -1435,7 +1440,7 @@ describe("UMAAL instruction assemble", () => {
     const rn = TextToRegister.R3;
     const rm = TextToRegister.R4;
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "UMAAL R1, R2, R3, R4",
       encode:
@@ -1461,7 +1466,7 @@ describe("UMAAL instruction assemble", () => {
       const rn = TextToRegister.R3;
       const rm = TextToRegister.R4;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `UMAAL${cond} R1, R2, R3, R4`,
         encode:
@@ -1491,7 +1496,7 @@ describe("Other Signed/Unsigned Multiplication instruction assemble", () => {
       const rn = TextToRegister.R3;
       const rm = TextToRegister.R4;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op} R1, R2, R3, R4`,
         encode:
@@ -1516,7 +1521,7 @@ describe("Other Signed/Unsigned Multiplication instruction assemble", () => {
       const rn = TextToRegister.R3;
       const rm = TextToRegister.R4;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op}S R1, R2, R3, R4`,
         encode:
@@ -1543,7 +1548,7 @@ describe("Other Signed/Unsigned Multiplication instruction assemble", () => {
         const rn = TextToRegister.R3;
         const rm = TextToRegister.R4;
         const { instructions } = assembler.assemble(code);
-        expect(instructions.size).toBe(1);
+        expect(instructions.size).toBe(2);
         expect(instructions.get(pc)).toStrictEqual({
           origin: `${op}${cond} R1, R2, R3, R4`,
           encode:
@@ -1568,7 +1573,7 @@ describe("Other Signed/Unsigned Multiplication instruction assemble", () => {
         const rn = TextToRegister.R3;
         const rm = TextToRegister.R4;
         const { instructions } = assembler.assemble(code);
-        expect(instructions.size).toBe(1);
+        expect(instructions.size).toBe(2);
         expect(instructions.get(pc)).toStrictEqual({
           origin: `${op}S${cond} R1, R2, R3, R4`,
           encode:
@@ -1598,7 +1603,7 @@ describe("Block Load instruction assemble", () => {
       const rn = TextToRegister.R1;
       const registerList = 1 << 2;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op} R1, {R2}`,
         encode:
@@ -1620,7 +1625,7 @@ describe("Block Load instruction assemble", () => {
       const rn = TextToRegister.R1;
       const registerList = 1 << 2;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op} R1!, {R2}`,
         encode:
@@ -1643,7 +1648,7 @@ describe("Block Load instruction assemble", () => {
       const rn = TextToRegister.R1;
       const registerList = (1 << 2) | (1 << 3) | (1 << 4) | (1 << 7) | (1 << 9);
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op} R1!, {R2, R3, R4, R7, R9}`,
         encode:
@@ -1667,7 +1672,7 @@ describe("Block Load instruction assemble", () => {
         const rn = TextToRegister.R5;
         const registerList = (1 << 2) | (1 << 4);
         const { instructions } = assembler.assemble(code);
-        expect(instructions.size).toBe(1);
+        expect(instructions.size).toBe(2);
         expect(instructions.get(pc)).toStrictEqual({
           origin: `${op}${cond} R5, {R2, R4}`,
           encode:
@@ -1695,7 +1700,7 @@ describe("Block Store instruction assemble", () => {
       const rn = TextToRegister.R1;
       const registerList = 1 << 2;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op} R1, {R2}`,
         encode:
@@ -1712,7 +1717,7 @@ describe("Block Store instruction assemble", () => {
       const rn = TextToRegister.R1;
       const registerList = 1 << 2;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op} R1!, {R2}`,
         encode:
@@ -1734,7 +1739,7 @@ describe("Block Store instruction assemble", () => {
       const rn = TextToRegister.R1;
       const registerList = (1 << 2) | (1 << 3) | (1 << 4) | (1 << 7) | (1 << 9);
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `${op} R1!, {R2, R3, R4, R7, R9}`,
         encode:
@@ -1757,7 +1762,7 @@ describe("Block Store instruction assemble", () => {
         const rn = TextToRegister.R5;
         const registerList = (1 << 2) | (1 << 4);
         const { instructions } = assembler.assemble(code);
-        expect(instructions.size).toBe(1);
+        expect(instructions.size).toBe(2);
         expect(instructions.get(pc)).toStrictEqual({
           origin: `${op}${cond} R5, {R2, R4}`,
           encode:
@@ -1782,7 +1787,7 @@ describe("POP instruction assemble", () => {
     const opCode = BlockLoad.LDM;
     const registerList = (1 << 1) | (1 << 2) | (1 << 4);
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "POP {R1, R2, R4}",
       encode:
@@ -1806,7 +1811,7 @@ describe("POP instruction assemble", () => {
       const rn = TextToRegister.SP;
       const registerList = (1 << 2) | (1 << 4);
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `POP${cond} {R2, R4}`,
         encode:
@@ -1832,7 +1837,7 @@ describe("PUSH instruction assemble", () => {
     const opCode = BlockStore.STMDB;
     const registerList = (1 << 1) | (1 << 2) | (1 << 4);
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "PUSH {R1, R2, R4}",
       encode:
@@ -1855,7 +1860,7 @@ describe("PUSH instruction assemble", () => {
       const rn = TextToRegister.SP;
       const registerList = 1 | (1 << 4);
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `PUSH${cond} {R0, R4}`,
         encode:
@@ -1880,7 +1885,7 @@ describe("SWAP instruction assemble", () => {
     const rt2 = TextToRegister.R2;
     const rn = TextToRegister.R3;
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "SWP R1, R2, [R3]",
       encode:
@@ -1897,7 +1902,7 @@ describe("SWAP instruction assemble", () => {
     const rt2 = TextToRegister.R2;
     const rn = TextToRegister.R3;
     const { instructions } = assembler.assemble(code);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "SWPB R1, R2, [R3]",
       encode:
@@ -1921,7 +1926,7 @@ describe("SWAP instruction assemble", () => {
       const rt2 = TextToRegister.R2;
       const rn = TextToRegister.R3;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `SWP${cond} R1, R2, [R3]`,
         encode:
@@ -1943,7 +1948,7 @@ describe("SWAP instruction assemble", () => {
       const rt2 = TextToRegister.R2;
       const rn = TextToRegister.R3;
       const { instructions } = assembler.assemble(code);
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `SWPB${cond} R1, R2, [R3]`,
         encode:
@@ -1976,7 +1981,7 @@ describe("LDR instruction assemble", () => {
     expect(data).toStrictEqual([
       0x00, 0x01, 0xe2, 0x40, 0x00, 0x09, 0xfb, 0xf1,
     ]);
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "LDR R1, data1",
       encode:
@@ -2004,7 +2009,7 @@ describe("LDR instruction assemble", () => {
     expect(data.length).toBe(5001);
     // 1E240 and 9FBF1
     expect(data[0]).toStrictEqual(0x41);
-    expect(instructions.size).toBe(5);
+    expect(instructions.size).toBe(6);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "PUSH {R12}",
       encode: (0xe << 28) | (0x9 << 24) | (0x1 << 21) | (0xd << 16) | (1 << 12),
@@ -2056,7 +2061,7 @@ describe("LDR instruction assemble", () => {
     const { instructions } = assembler.assemble(code);
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "LDR R1, [R2]",
       encode:
@@ -2077,7 +2082,7 @@ describe("LDR instruction assemble", () => {
     const { instructions } = assembler.assemble(code);
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "LDR R1, [R2, #12]",
       encode:
@@ -2100,7 +2105,7 @@ describe("LDR instruction assemble", () => {
     const { instructions } = assembler.assemble(code);
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "LDR R1, [R2, #12]!",
       encode:
@@ -2124,7 +2129,7 @@ describe("LDR instruction assemble", () => {
     const { instructions } = assembler.assemble(code);
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "LDR R1, [R2, #-8]!",
       encode:
@@ -2147,7 +2152,7 @@ describe("LDR instruction assemble", () => {
     const { instructions } = assembler.assemble(code);
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "LDR R1, [R2], #12",
       encode:
@@ -2169,7 +2174,7 @@ describe("LDR instruction assemble", () => {
     const { instructions } = assembler.assemble(code);
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "LDR R1, [R2], #-10",
       encode:
@@ -2185,7 +2190,7 @@ describe("LDR instruction assemble", () => {
     const { instructions } = assembler.assemble(code);
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "LDR R1, [R2], #-10",
       encode:
@@ -2203,7 +2208,7 @@ describe("LDR instruction assemble", () => {
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
     const rm = TextToRegister.R3;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "LDR R1, [R2], +R3, RRX",
       encode:
@@ -2229,7 +2234,7 @@ describe("LDR instruction assemble", () => {
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
     const rm = TextToRegister.R3;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "LDR R1, [R2, -R3, RRX]",
       encode:
@@ -2255,7 +2260,7 @@ describe("LDR instruction assemble", () => {
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
     const rm = TextToRegister.R3;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "LDR R1, [R2, -R3, RRX]!",
       encode:
@@ -2283,7 +2288,7 @@ describe("LDR instruction assemble", () => {
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
     const rm = TextToRegister.R3;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "LDR R1, [R2], R3, LSL #4",
       encode:
@@ -2311,7 +2316,7 @@ describe("LDR instruction assemble", () => {
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
     const rm = TextToRegister.R3;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "LDR R1, [R2, -R3, ASR #31]",
       encode:
@@ -2339,7 +2344,7 @@ describe("LDR instruction assemble", () => {
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
     const rm = TextToRegister.R3;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "LDR R1, [R2, -R3, LSR #13]!",
       encode:
@@ -2365,7 +2370,7 @@ describe("LDR instruction assemble", () => {
     const { instructions } = assembler.assemble(code);
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "LDRB R1, [R2]",
       encode:
@@ -2391,7 +2396,7 @@ describe("LDR instruction assemble", () => {
       const rt = TextToRegister.R1;
       const rn = TextToRegister.R2;
       const rm = TextToRegister.R3;
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `LDR${cond} R1, [R2, -R3, LSR #13]!`,
         encode:
@@ -2417,7 +2422,7 @@ describe("LDR instruction assemble", () => {
       const { instructions } = assembler.assemble(code);
       const rt = TextToRegister.R1;
       const rn = TextToRegister.R2;
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `LDRB${cond} R1, [R2], #-10`,
         encode:
@@ -2442,7 +2447,7 @@ describe("STR instruction assemble", () => {
     const { instructions } = assembler.assemble(code);
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "STR R1, [R2]",
       encode: (0xe << 28) | (1 << 26) | (1 << 24) | (rn << 16) | (rt << 12),
@@ -2457,7 +2462,7 @@ describe("STR instruction assemble", () => {
     const { instructions } = assembler.assemble(code);
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "str R1, [R2, #12]",
       encode:
@@ -2479,7 +2484,7 @@ describe("STR instruction assemble", () => {
     const { instructions } = assembler.assemble(code);
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "str r1, [r2, #12]!",
       encode:
@@ -2502,7 +2507,7 @@ describe("STR instruction assemble", () => {
     const { instructions } = assembler.assemble(code);
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "STR R1, [R2, #-8]!",
       encode:
@@ -2524,7 +2529,7 @@ describe("STR instruction assemble", () => {
     const { instructions } = assembler.assemble(code);
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "STR R1, [R2], #12",
       encode:
@@ -2540,7 +2545,7 @@ describe("STR instruction assemble", () => {
     const { instructions } = assembler.assemble(code);
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "STR R1, [R2], #-10",
       encode: (0xe << 28) | (1 << 26) | (rn << 16) | (rt << 12) | 0xa,
@@ -2555,7 +2560,7 @@ describe("STR instruction assemble", () => {
     const { instructions } = assembler.assemble(code);
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "STR R1, [R2], #-10",
       encode: (0xe << 28) | (1 << 26) | (rn << 16) | (rt << 12) | 0xa,
@@ -2572,7 +2577,7 @@ describe("STR instruction assemble", () => {
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
     const rm = TextToRegister.R3;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "STR R1, [R2], +R3, RRX",
       encode:
@@ -2597,7 +2602,7 @@ describe("STR instruction assemble", () => {
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
     const rm = TextToRegister.R3;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "STR R1, [R2, -R3, RRX]",
       encode:
@@ -2622,7 +2627,7 @@ describe("STR instruction assemble", () => {
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
     const rm = TextToRegister.R3;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "STR R1, [R2, -R3, RRX]!",
       encode:
@@ -2649,7 +2654,7 @@ describe("STR instruction assemble", () => {
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
     const rm = TextToRegister.R3;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "STR R1, [R2], R3, LSL #4",
       encode:
@@ -2676,7 +2681,7 @@ describe("STR instruction assemble", () => {
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
     const rm = TextToRegister.R3;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "STR R1, [R2, -R3, ASR #31]",
       encode:
@@ -2703,7 +2708,7 @@ describe("STR instruction assemble", () => {
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
     const rm = TextToRegister.R3;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "STR R1, [R2, -R3, LSR #13]!",
       encode:
@@ -2728,7 +2733,7 @@ describe("STR instruction assemble", () => {
     const { instructions } = assembler.assemble(code);
     const rt = TextToRegister.R1;
     const rn = TextToRegister.R2;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     expect(instructions.get(pc)).toStrictEqual({
       origin: "STRB R1, [R2]",
       encode:
@@ -2753,7 +2758,7 @@ describe("STR instruction assemble", () => {
       const rt = TextToRegister.R1;
       const rn = TextToRegister.R2;
       const rm = TextToRegister.R3;
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `STR${cond} R1, [R2, -R3, LSR #13]!`,
         encode:
@@ -2778,7 +2783,7 @@ describe("STR instruction assemble", () => {
       const { instructions } = assembler.assemble(code);
       const rt = TextToRegister.R1;
       const rn = TextToRegister.R2;
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       expect(instructions.get(pc)).toStrictEqual({
         origin: `STRB${cond} R1, [R2], #-10`,
         encode:
@@ -2807,7 +2812,7 @@ describe("B instruction assemble", () => {
 
     const { instructions } = assembler.assemble(code);
     const offset = (-12 >> 2) & 0x00ffffff;
-    expect(instructions.size).toBe(5);
+    expect(instructions.size).toBe(6);
     // we only care about the branch
     expect(instructions.get(pc + 16)).toStrictEqual({
       origin: "B Loops",
@@ -2829,7 +2834,7 @@ describe("B instruction assemble", () => {
 
     const { instructions } = assembler.assemble(code);
     const offset = (16 >> 2) & 0x00ffffff;
-    expect(instructions.size).toBe(5);
+    expect(instructions.size).toBe(6);
     // we only care about the branch
     expect(instructions.get(pc)).toStrictEqual({
       origin: "B Loops",
@@ -2852,7 +2857,7 @@ describe("B instruction assemble", () => {
 
       const { instructions } = assembler.assemble(code);
       const offset = (16 >> 2) & 0x00ffffff;
-      expect(instructions.size).toBe(5);
+      expect(instructions.size).toBe(6);
       // we only care about the branch
       expect(instructions.get(pc)).toStrictEqual({
         origin: `B${cond} Loops`,
@@ -2879,7 +2884,7 @@ describe("BL instruction assemble", () => {
 
     const { instructions } = assembler.assemble(code);
     const offset = (-12 >> 2) & 0x00ffffff;
-    expect(instructions.size).toBe(5);
+    expect(instructions.size).toBe(6);
     // we only care about the branch
     expect(instructions.get(pc + 16)).toStrictEqual({
       origin: "BL Loops",
@@ -2901,7 +2906,7 @@ describe("BL instruction assemble", () => {
 
     const { instructions } = assembler.assemble(code);
     const offset = (16 >> 2) & 0x00ffffff;
-    expect(instructions.size).toBe(5);
+    expect(instructions.size).toBe(6);
     // we only care about the branch
     expect(instructions.get(pc)).toStrictEqual({
       origin: "BL Loops",
@@ -2924,7 +2929,7 @@ describe("BL instruction assemble", () => {
 
       const { instructions } = assembler.assemble(code);
       const offset = (16 >> 2) & 0x00ffffff;
-      expect(instructions.size).toBe(5);
+      expect(instructions.size).toBe(6);
       // we only care about the branch
       expect(instructions.get(pc)).toStrictEqual({
         origin: `BL${cond} Loops`,
@@ -2946,7 +2951,7 @@ describe("BX instruction assemble", () => {
 
     const { instructions } = assembler.assemble(code);
     const rm = TextToRegister.R10;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     // we only care about the branch
     expect(instructions.get(pc)).toStrictEqual({
       origin: "BX R10",
@@ -2964,7 +2969,7 @@ describe("BX instruction assemble", () => {
 
       const { instructions } = assembler.assemble(code);
       const rm = TextToRegister.R0;
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       // we only care about the branch
       expect(instructions.get(pc)).toStrictEqual({
         origin: `Bx${cond} R0`,
@@ -2988,7 +2993,7 @@ describe("BLX instruction assemble", () => {
 
     const { instructions } = assembler.assemble(code);
     const rm = TextToRegister.R10;
-    expect(instructions.size).toBe(1);
+    expect(instructions.size).toBe(2);
     // we only care about the branch
     expect(instructions.get(pc)).toStrictEqual({
       origin: "BLX R10",
@@ -3006,7 +3011,7 @@ describe("BLX instruction assemble", () => {
 
       const { instructions } = assembler.assemble(code);
       const rm = TextToRegister.R0;
-      expect(instructions.size).toBe(1);
+      expect(instructions.size).toBe(2);
       // we only care about the branch
       expect(instructions.get(pc)).toStrictEqual({
         origin: `BLx${cond} R0`,

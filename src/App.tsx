@@ -1,34 +1,72 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
+import "react";
 import "./App.css";
+import { Navigate, NavLink, Route, Routes } from "react-router";
+import ArmEditor from "./pages/editor";
+import Simulator from "./pages/simulator";
+import Documentation from "./pages/documentation";
+import type { Machine } from "./pages/context";
+import { MachineContext } from "./pages/context";
+import { Arm32RegisterFile } from "./components/arm32RegisterFile";
+import { Arm32Memory } from "./components/arm32Memory";
+import { Arm32ALU } from "./components/arm32ALU";
+import { Arm32Simulator } from "./components/arm32Simulator";
+import { Arm32Assembler } from "./components/arm32Assembler";
+import { useState } from "react";
+import { DEFAULT_CODE } from "./constants/defaultCode";
+
+function createMachine(): Machine {
+  const registerFile = new Arm32RegisterFile();
+  const memory = new Arm32Memory();
+  const alu = new Arm32ALU();
+  const simulator = new Arm32Simulator(alu, registerFile, memory);
+  const assembler = new Arm32Assembler();
+  const code = DEFAULT_CODE;
+  return {
+    code,
+    assembler,
+    simulator,
+    registerFile,
+    memory,
+    alu,
+  };
+}
 
 function App() {
-  const [count, setCount] = useState(0);
+  const [machine, setMachine] = useState(createMachine());
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <MachineContext value={{ machine, setMachine }}>
+      <div className="h-screen">
+        <nav className="bg-gray-900 text-white px-6 py-3 flex items-center justify-between">
+          <div className="grid grid-cols-3 gap-3">
+            <button className="nav-btn">
+              <NavLink className="w-full block" to="/editor">
+                Editor
+              </NavLink>
+            </button>
+
+            <button className="nav-btn">
+              <NavLink className="w-full block" to="/simulator">
+                Simulator
+              </NavLink>
+            </button>
+
+            <button className="nav-btn">
+              <NavLink className="w-full block" to="/doc">
+                Documentation
+              </NavLink>
+            </button>
+          </div>
+          <div className="text-xl font-semibold">Arm32 Simulator</div>
+        </nav>
+        <Routes>
+          <Route path="editor" element={<ArmEditor />} />
+          <Route path="simulator" element={<Simulator />} />
+          <Route path="doc" element={<Documentation />} />
+          <Route path="*" element={<Navigate to="editor" replace />} />
+        </Routes>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    </MachineContext>
   );
 }
 

@@ -6,9 +6,23 @@ const BYTES_IN_ONE_PAGE = 2 ** 16;
 const MEM_SIZE = 2 ** 32;
 export class Arm32Memory implements Memory {
   private memoryMap: ArrayBuffer[];
-
+  private checkPoint: ArrayBuffer[];
   constructor() {
     this.memoryMap = new Array<ArrayBuffer>(TOTAL_PAGE_COUNT);
+    this.checkPoint = new Array<ArrayBuffer>(TOTAL_PAGE_COUNT);
+  }
+
+  createCheckpoint() {
+    this.checkPoint = structuredClone(this.memoryMap);
+  }
+
+  goBackToCheckpoint() {
+    this.checkPoint = structuredClone(this.checkPoint);
+  }
+
+  reset() {
+    this.memoryMap = new Array<ArrayBuffer>(TOTAL_PAGE_COUNT);
+    this.checkPoint = new Array<ArrayBuffer>(TOTAL_PAGE_COUNT);
   }
 
   readWord(offset: Word): Word {

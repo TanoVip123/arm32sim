@@ -13,8 +13,11 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",
+    "prism-code-editor": "^4.1.0",
+    "prism-react-editor": "^2.1.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-router": "^7.9.6",
     "tailwindcss": "^4.1.14"
   },
   "devDependencies": {
