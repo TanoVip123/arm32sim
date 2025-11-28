@@ -9,7 +9,7 @@ import { MachineContext } from "./context";
 import { CODE_SEGMENT } from "../constants/SegmentPosition";
 
 const MEMORY_DISPLAY_LENGTH: number = 512;
-function Simulator(props) {
+function Simulator() {
   const { machine } = useContext(MachineContext);
   const [tab, setTab] = useState(1);
   const [registerFiles, setRegisterFiles] = useState<string[]>(

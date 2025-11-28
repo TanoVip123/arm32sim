@@ -1,6 +1,6 @@
 import "react";
 
-function Documentation(props) {
+function Documentation() {
   return (
     <div>
       <h1>This is the documentation page</h1>
