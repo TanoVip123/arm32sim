@@ -39,6 +39,10 @@
     @apply px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-600 text-white transition font-medium w-full text-left;
   }
 
+  .highlight-nav-btn {
+    @apply px-4 py-2 rounded-lg bg-amber-800 hover:bg-amber-600 text-white transition font-medium w-full text-left;
+  }
+
   .sim-btn {
     @apply outline bg-amber-400 rounded-lg hover:bg-amber-300 text-black font-medium text-center p-2;
   }
@@ -49,6 +53,18 @@
 
   .panel-header {
     @apply text-center text-lg bg-gray-700 font-bold;
+  }
+
+  .section-header {
+    @apply text-2xl font-bold
+  }
+
+  .doc-section{
+    @apply text-2xl font-bold mb-2 mt-2
+  }
+
+  .custom-table {
+    @apply mt-6 min-w-full table-auto border-collapse border border-gray-400
   }
 
   .cell {

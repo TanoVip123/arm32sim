@@ -53,24 +53,25 @@ function ArmEditor() {
         new Word(dataStartPoint),
         new Uint8Array(data).buffer,
       );
+
       const u8 = new Uint8Array(instructions.size * 4)
-      Array.from(instructions.entries()).forEach((value, index) => {
+      const instructionsList = Array.from(instructions.entries()) 
+      instructionsList.forEach((value, index) => {
         const v = value[1].encode
         u8[index * 4 + 0] = (v >>> 24) & 0xFF;
         u8[index * 4 + 1] = (v >>> 16) & 0xFF;
         u8[index * 4 + 2] = (v >>> 8)  & 0xFF;
         u8[index * 4 + 3] = (v >>> 0)  & 0xFF;
       })
-
       machine!.memory.writeBuffer(
         new Word(CODE_SEGMENT),
         u8.buffer,
       );
       machine!.memory.createCheckpoint();
-
       // reset everything else
       machine!.simulator.reset()
       machine!.registerFile.reset()
+      machine!.simulator.setProgramEnd(instructionsList[instructionsList.length-1][0])
       setConsoleMessage("Assembled Successfully");
     } catch (e) {
       setConsoleMessage((e as Error).message);

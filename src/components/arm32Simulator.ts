@@ -12,6 +12,9 @@ import {
 import { numToNZCV, nzcvToNum, type NZCV } from "../types/flags";
 import type { ArmALU } from "../interface/ALU";
 import type { ArmSimulator } from "../interface/simulator";
+import { CODE_SEGMENT, STACK_SEGMENT } from "../constants/SegmentPosition";
+import { CODE_SECTION } from "../constants/directives";
+import { TextToRegister } from "../types/registerName";
 
 // Maybe this should be the worker or something
 // Need a simulator state
@@ -21,12 +24,18 @@ export class Arm32Simulator implements ArmSimulator {
   memory: Memory;
   isDone: boolean;
   isBranch: boolean;
+  programEnd: number;
   constructor(alu: ArmALU, registerFile: RegisterFile, memory: Memory) {
     this.alu = alu;
     this.registerFile = registerFile;
     this.memory = memory;
     this.isDone = false;
     this.isBranch = false;
+    this.programEnd = STACK_SEGMENT
+  }
+
+  setProgramEnd(address: number) {
+    this.programEnd = address
   }
 
   reset(){
@@ -580,6 +589,9 @@ export class Arm32Simulator implements ArmSimulator {
       ? rn.view.getUint32(0) + offset.view.getUint32(0)
       : rn.view.getUint32(0) - offset.view.getUint32(0);
     const address = index ? offset_addr : rn.view.getUint32(0);
+    if(address <= this.programEnd && address >= CODE_SEGMENT) {
+      throw new Error("Can not store anything to the CODE_SECTION")
+    }
     if (isByte) {
       const dataToStore = new Uint8Array([rt.view.getUint8(3)]);
       this.memory.writeBuffer(new Word(address), dataToStore.buffer);
@@ -620,6 +632,10 @@ export class Arm32Simulator implements ArmSimulator {
 
     for (let i = 0; i < 16; i++) {
       if ((registerList >> i) & 1) {
+        if(rn_index == TextToRegister.SP)
+        {
+          this.validateStackAddress(address)
+        }
         this.registerFile.writeRegister(
           i,
           this.memory.readWord(new Word(address)),
@@ -648,6 +664,18 @@ export class Arm32Simulator implements ArmSimulator {
       }
       this.registerFile.writeRegister(rn_index, new Word(writeBackAddress));
     }
+  }
+
+  validateStackAddress(address: number) {
+    if(address >= STACK_SEGMENT)
+      {
+        throw new Error("Stack underflow")
+      }
+
+      if(address <= this.programEnd)
+      {
+        throw new Error("Stack overflow")
+      }
   }
 
   execBlockStore(instruction: Word) {
@@ -685,6 +713,15 @@ export class Arm32Simulator implements ArmSimulator {
 
     for (let i = 0; i < 16; i++) {
       if ((registerList >> i) & 1) {
+        if(address <= this.programEnd && address >= CODE_SEGMENT) {
+          throw new Error("Can not store anything to the CODE_SECTION")
+        }
+
+        if(rn_index == TextToRegister.SP)
+        {
+          this.validateStackAddress(address)
+        }
+         
         this.memory.writeWord(
           new Word(address),
           this.registerFile.readRegister(i),
@@ -784,6 +821,9 @@ export class Arm32Simulator implements ArmSimulator {
 
     const pc = this.registerFile.readRegister(15)
     const instruction = this.memory.readWord(pc)
+    if(pc.view.getUint32(0) > this.programEnd || pc.view.getUint32(0)  < CODE_SEGMENT) {
+      throw new Error("PC fall out of CODE_SECTION")
+    }
     // if we see an instruction that is 0, 
     if(instruction.view.getUint32(0) == 0xFFFFFFFF)
     {

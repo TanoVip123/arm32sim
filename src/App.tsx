@@ -33,29 +33,27 @@ function createMachine(): Machine {
 
 function App() {
   const [machine, setMachine] = useState(createMachine());
-
+  
+  const [highlightNavBtn, setHighlightNavBtn] = useState<string>(window.location.pathname)
+  const navItem = (label: string, href: string) => {
+    return (
+      <button className={highlightNavBtn === href ?  "highlight-nav-btn": "nav-btn"} onClick={() => setHighlightNavBtn(href)}>
+        <NavLink className="w-full block" to={href}>
+          {label}
+        </NavLink>
+      </button>
+    )
+  }
   return (
     <MachineContext value={{ machine, setMachine }}>
       <div className="h-screen">
         <nav className="bg-gray-900 text-white px-6 py-3 flex items-center justify-between">
           <div className="grid grid-cols-3 gap-3">
-            <button className="nav-btn">
-              <NavLink className="w-full block" to="/editor">
-                Editor
-              </NavLink>
-            </button>
+             {navItem("Editor","/editor")}
 
-            <button className="nav-btn">
-              <NavLink className="w-full block" to="/simulator">
-                Simulator
-              </NavLink>
-            </button>
+            {navItem("Simulator","/simulator")}
 
-            <button className="nav-btn">
-              <NavLink className="w-full block" to="/doc">
-                Documentation
-              </NavLink>
-            </button>
+            {navItem("Documentation","/doc")}
           </div>
           <div className="text-xl font-semibold">Arm32 Simulator</div>
         </nav>
