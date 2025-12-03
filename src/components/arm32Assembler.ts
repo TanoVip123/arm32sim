@@ -15,6 +15,7 @@ import {
   BlockLoad,
   BlockStore,
   DataProcessing,
+  MovImmediate,
   MultiplyAcc,
   type InstructionBlob,
 } from "../types/instructions";
@@ -53,6 +54,7 @@ const BLOCK_LOAD_STORE: string[] = [
   "stmib",
   "stmdb",
 ];
+const IMMEDIATE_MOVE = ["movt", "movw"]
 const BLOCK_LOAD_STORE_INCREMENT_AFTER: string[] = ["stm", "ldm"];
 const POP_PUSH: string[] = ["pop", "push"];
 const BRANCH: string[] = ["b", "bx", "blx", "bl"];
@@ -177,7 +179,7 @@ export class Arm32Assembler implements ArmAssembler {
       const imm = this.extractImm(tokens[3]);
       const { imm8, rotate } = encodeImm12(imm);
       if (rotate == -1) {
-        const immSeq = this.constructImmSequence(imm);
+        const {immSeq, tempReg} = this.constructImmSequence(imm, [rd, rn]);
         // This becomes a register operation
         immSeq.splice(3, 0, {
           origin: line,
@@ -187,7 +189,7 @@ export class Arm32Assembler implements ArmAssembler {
             (S << 20) |
             (rn << 16) |
             (rd << 12) |
-            0xc,
+            tempReg,
         });
         return immSeq;
       } else {
@@ -203,6 +205,40 @@ export class Arm32Assembler implements ArmAssembler {
         return [{ origin: line, encode: instruction }];
       }
     }
+  }
+
+  assembleImmediateMove(line: string): InstructionBlob[] {
+    const tokens: string[] = this.getProcessedToken(line);
+    if (tokens.length != 3){
+      throw new Error(
+        `Maximum number of tokens for this instruction is 3: ${line}`,
+      );
+    }
+    const op = getValueIfKeyExists(MovImmediate, tokens[0].slice(0, 4))!;
+    const flag = tokens[0].slice(4);
+    const { extractedFlag: S, condition } = this.extractFlagAndCondition(
+      "S",
+      flag,
+    );
+
+    if (S) {
+      throw new Error(
+        "MOVW and MOVT doesn't have S flag",
+      );
+    }
+    const rd = getValueIfKeyExists(TextToRegister, tokens[1]);
+    const imm = this.extractImm(tokens[2]);
+    if (rd == undefined) {
+      throw new Error(`Undefined registers: ${rd}`);
+    }
+
+    if(imm <0 || imm > 65535) {
+      throw new Error(`Imm overflow for MOVT or MOVW: ${imm}`);
+    }
+
+    const encode = condition << 28 | 0x3 << 24 | op << 22 | (imm >>> 12) << 16 | rd << 12 | (imm & 0xFFF)
+
+    return [{origin: line, encode:encode}]
   }
 
   assembleDataProcessingTest(line: string): InstructionBlob[] {
@@ -268,12 +304,12 @@ export class Arm32Assembler implements ArmAssembler {
       const imm = this.extractImm(tokens[2]);
       const { imm8, rotate } = encodeImm12(imm);
       if (rotate == -1) {
-        const immSeq = this.constructImmSequence(imm);
+        const {immSeq, tempReg} = this.constructImmSequence(imm, [rn]);
 
         // This is now actually register with register
         immSeq.splice(3, 0, {
           origin: line,
-          encode: (condition << 28) | (op << 21) | (1 << 20) | (rn << 16) | 0xc,
+          encode: (condition << 28) | (op << 21) | (1 << 20) | (rn << 16) | tempReg,
         });
         return immSeq;
       } else {
@@ -322,10 +358,10 @@ export class Arm32Assembler implements ArmAssembler {
       const imm = this.extractImm(tokens[2]);
       const { imm8, rotate } = encodeImm12(imm);
       if (rotate == -1) {
-        const immSeq = this.constructImmSequence(imm);
+        const {immSeq, tempReg} = this.constructImmSequence(imm, [rd]);
         immSeq.splice(3, 0, {
           origin: line,
-          encode: (condition << 28) | (op << 21) | (S << 20) | (rd << 12) | 0xc,
+          encode: (condition << 28) | (op << 21) | (S << 20) | (rd << 12) | tempReg,
         });
         return immSeq;
       } else {
@@ -400,10 +436,10 @@ export class Arm32Assembler implements ArmAssembler {
       const imm = this.extractImm(tokens[2]);
       const { imm8, rotate } = encodeImm12(imm);
       if (rotate == -1) {
-        const immSeq = this.constructImmSequence(imm);
+        const {immSeq, tempReg} = this.constructImmSequence(imm, [rd]);
         immSeq.splice(3, 0, {
           origin: line,
-          encode: (condition << 28) | (op << 21) | (S << 20) | (rd << 12) | 0xc,
+          encode: (condition << 28) | (op << 21) | (S << 20) | (rd << 12) | tempReg,
         });
         return immSeq;
       } else {
@@ -728,8 +764,8 @@ export class Arm32Assembler implements ArmAssembler {
       if (isLoad && this.dataLabels.has(originalLabel)) {
         let offset = this.dataLabels.get(originalLabel)! - pc;
         if (offset < -4095 || offset > 4095) {
-          const immSeq = this.constructImmSequence(
-            this.dataLabels.get(originalLabel)!,
+          const {immSeq, tempReg} = this.constructImmSequence(
+            this.dataLabels.get(originalLabel)!, [rt]
           );
           immSeq.splice(3, 0, {
             origin: line,
@@ -739,7 +775,7 @@ export class Arm32Assembler implements ArmAssembler {
               (1 << 24) |
               (B << 22) |
               (1 << 20) |
-              (0xc << 16) |
+              (tempReg << 16) |
               (rt << 12),
           });
           return immSeq;
@@ -844,7 +880,7 @@ export class Arm32Assembler implements ArmAssembler {
               imm;
             return [{ origin: line, encode: instruction }];
           } else {
-            const immSeq = this.constructImmSequence(imm);
+            const {immSeq, tempReg} = this.constructImmSequence(imm, [rt, rn]);
 
             immSeq.splice(3, 0, {
               origin: line,
@@ -859,7 +895,7 @@ export class Arm32Assembler implements ArmAssembler {
                 (Number(isLoad) << 20) |
                 (rn << 16) |
                 (rt << 12) |
-                0xc,
+                tempReg,
             });
             return immSeq;
           }
@@ -1053,41 +1089,56 @@ export class Arm32Assembler implements ArmAssembler {
     }
   }
 
-  constructImmSequence(imm: number): InstructionBlob[] {
+  constructImmSequence(imm: number, operands: number[]): { immSeq: InstructionBlob[], tempReg: number} {
     // push R12 (AKA the scratch register), use MOVT and MOVW to load the immediate, add that register normally, POP R12
+    // use R12 by default by if R12 is one of the operand, use another register that is not in the operand list
+    let tempReg = 0xc
+    if(operands.includes(tempReg))
+    {
+      for(let i = 0; i < 16; i++)
+      {
+        if (!operands.includes(i))
+        {
+          tempReg = i;
+          break;
+        }
+      }
+    }
+
     if (imm > 0x7fffffff || imm < 1 << 31) {
       throw new Error(`imm out of 32 bit range: ${imm}`);
     }
 
+    const tempRegName = "R" + tempReg.toString()
     const topHalf = (imm & 0xffff0000) >>> 16;
     const bottomHalf = imm & 0x0000ffff;
-    return [
+    return {immSeq: [
       {
-        origin: "PUSH {R12}",
+        origin: `PUSH {${tempRegName}}`,
         encode:
-          (0xe << 28) | (0x9 << 24) | (1 << 21) | (0xd << 16) | (1 << 0xc),
+          (0xe << 28) | (0x9 << 24) | (1 << 21) | (0xd << 16) | (1 << tempReg),
       },
       {
-        origin: `MOVW R12, #${bottomHalf}`,
+        origin: `MOVW ${tempRegName}, #${bottomHalf}`,
         encode:
           (0xe << 28) |
           (0x3 << 24) |
           (((bottomHalf & 0xf000) >>> 12) << 16) |
-          (0xc << 12) |
+          (tempReg << 12) |
           (bottomHalf & 0x0fff),
       },
       {
-        origin: `MOVT R12, #${topHalf}`,
+        origin: `MOVT ${tempRegName}, #${topHalf}`,
         encode:
           (0xe << 28) |
           (0x3 << 24) |
           (1 << 22) |
           (((topHalf & 0xf000) >>> 12) << 16) |
-          (0xc << 12) |
+          (tempReg << 12) |
           (topHalf & 0x0fff),
       },
       {
-        origin: "POP {R12}",
+        origin: `POP {${tempRegName}}`,
         encode:
           (0xe << 28) |
           (0x8 << 24) |
@@ -1095,9 +1146,9 @@ export class Arm32Assembler implements ArmAssembler {
           (1 << 21) |
           (1 << 20) |
           (0xd << 16) |
-          (1 << 0xc),
+          (1 << tempReg),
       },
-    ];
+    ], tempReg: tempReg}
   }
 
   assembleCode(codeSection: string) {
@@ -1135,6 +1186,8 @@ export class Arm32Assembler implements ArmAssembler {
       let newInstruction: InstructionBlob[] = [];
       if (this.opStartWithGroup(DATA_PROCESSING_3_OPS, op)) {
         newInstruction = this.assembleDataProcessing3Ops(line);
+      } else if(this.opStartWithGroup(IMMEDIATE_MOVE, op)){
+        newInstruction = this.assembleImmediateMove(line);
       } else if (this.opStartWithGroup(DATA_PROCESSING_MOV, op)) {
         newInstruction = this.assembleDataProcessingMov(line);
       } else if (this.opStartWithGroup(DATA_PROCESSING_2_OPS, op)) {

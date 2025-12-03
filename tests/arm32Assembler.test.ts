@@ -10,6 +10,7 @@ import {
   BlockStore,
   DataProcessing,
   MultiplyAcc,
+  MovImmediate,
 } from "../src/types/instructions";
 import { Condition } from "../src/types/conditions";
 import { getValueIfKeyExists } from "../src/function/helper";
@@ -313,6 +314,7 @@ describe("3Ops Data processing instruction assemble", () => {
     });
   });
 });
+
 
 describe("Test instruction assemble", () => {
   // I intentional make these lower case to test the upper case and lower case shouldn't matter
@@ -3025,3 +3027,45 @@ describe("BLX instruction assemble", () => {
     });
   });
 });
+
+describe("MOV 16 bit instruction assemble", () => {
+  const testOps = ["movw", "movt"];
+  testOps.forEach((op) => {
+    it(`${op} R2, #0xF0F0`, () => {
+      const code = `
+        .text  
+        ${op} R2, #0xF0F0
+        `;
+      const opCode = getValueIfKeyExists(MovImmediate, op.toUpperCase());
+      const rd = TextToRegister.R2;
+      const { instructions } = assembler.assemble(code);
+      expect(instructions.size).toBe(2);
+      expect(instructions.get(pc)).toStrictEqual({
+        origin: `${op} R2, #0xF0F0`,
+        encode: (0xe << 28) | 0x3 << 24 | (opCode << 22) | (0xF << 16) | (rd <<12) | 0x0F0,
+      });
+    });
+
+  Object.keys(Condition).forEach((cond) => {
+    it(`${op}${cond} R2, #0xF0F0`, () => {
+      const code = `
+    .text
+    ${op}${cond} R2, #0xF0F0
+    
+    `;
+
+      const { instructions } = assembler.assemble(code);
+      const opCode = getValueIfKeyExists(MovImmediate, op.toUpperCase());
+      const rd = TextToRegister.R2;
+      expect(instructions.size).toBe(2);
+      // we only care about the branch
+      expect(instructions.get(pc)).toStrictEqual({
+        origin: `${op}${cond} R2, #0xF0F0`,
+        encode:
+          (Condition[cond as keyof typeof Condition] << 28) | 0x3 << 24 | (opCode << 22) | (0xF << 16) | (rd <<12) | 0x0F0
+      });
+    });
+  });
+})
+})
+

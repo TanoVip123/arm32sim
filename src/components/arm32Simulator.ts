@@ -13,7 +13,6 @@ import { numToNZCV, nzcvToNum, type NZCV } from "../types/flags";
 import type { ArmALU } from "../interface/ALU";
 import type { ArmSimulator } from "../interface/simulator";
 import { CODE_SEGMENT, STACK_SEGMENT } from "../constants/SegmentPosition";
-import { CODE_SECTION } from "../constants/directives";
 import { TextToRegister } from "../types/registerName";
 
 // Maybe this should be the worker or something

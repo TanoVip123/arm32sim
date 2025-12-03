@@ -13,7 +13,6 @@ const MEMORY_DISPLAY_LENGTH: number = 512;
 function Simulator() {
   const { machine } = useContext(MachineContext);
   const [tab, setTab] = useState(1);
-  const [nzcv, setNZCV] = useState({"N": 0, "Z": 0, "C": 0, "V": 0})
   const [registerFiles, setRegisterFiles] = useState<string[]>(
     machine!.registerFile.getAllregisters().map((value) => value.view.getInt32(0).toString()),
   );

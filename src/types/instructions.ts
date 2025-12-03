@@ -44,3 +44,8 @@ export const BlockStore = {
   STMDB: 0x4,
   STMIB: 0x6,
 };
+
+export const MovImmediate = {
+  MOVW: 0x0,
+  MOVT: 0x1,
+};
