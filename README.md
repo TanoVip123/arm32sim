@@ -1,75 +1,90 @@
-# React + TypeScript + Vite
+# ARM32 Simulator (React + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A browser-based ARM32 instruction simulator built using **React**, **Vite**, and **TypeScript**.  
+This project provides an interactive environment to write ARM assembly, simulate CPU execution, and visualize registers, flags, and memory changes in real time.
 
-Currently, two official plugins are available:
+The webapp is hosted at [arm32sim.vercel.app](https://arm32sim.vercel.app/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 🚀 Features
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+- **ARM32 Instruction Execution**  
+  Supports common ARM32 data-processing, memory, and branch instructions. (Please see the documentation page of the web app)
 
-Note: This will impact Vite dev & build performances.
+- **Live Code Editor**  
+  Write and edit ARM assembly directly in the browser.
 
-## Expanding the ESLint configuration
+- **Step-by-Step Simulation**  
+  Inspect register values, flags, and memory after each instruction.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Memory and Register Viewer**  
+  Display RAM (4GB), PC, CPSR, and general registers.
 
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
+- **Fast Vite Dev Server**  
+  Near-instant hot reload for rapid development.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+---
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+## 📦 Tech Stack
+
+- **React** – UI layer
+- **Vite** – fast dev server and build system
+- **TypeScript** – type-safe CPU and instruction logic
+- **TailwindCSS** – styling
+- **Vitest** – testing
+- **ESLint + Prettier** – formatting and linting
+
+---
+
+## 🛠️ Installation
+
+```bash
+git clone https://github.com/yourname/arm32-simulator.git
+cd arm32-simulator
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 📜 Commands
 
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
+### Start the local development server
 
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
 ```
+npm run dev
+```
+
+### Format all file using Prettier
+
+```
+npm run format
+```
+
+### Run the test suit
+
+```
+npm run test
+```
+
+### Run ESLint
+
+```
+npm run lint
+```
+
+### Build the project
+
+```
+npm run build
+```
+
+## Project structure
+
+- **./components**: contains the backend component of the ARM32 simulator
+- **./constants**: contains well... constants for various files
+- **./function**: contains helper functions
+- **./interface**: contains the interface definitions for ARM32 simulator components
+- **./pages**: contains the React pages. These are simpy React function components
+- **./types**: contains the type definitions. This also contains the types of various ARM32 instructions that are used to assemble and decode an instruction. This is because ARM32 instructions are organized into groups so I used Typescript type to represent these groups.
+- **./webComponent**: similar to what is in **./pages** but smaller. These are little components that can be reused.
+
+* **./test**: contains unit test. This is what being run when you do `npm run test`.

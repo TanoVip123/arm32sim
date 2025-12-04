@@ -1,6 +1,6 @@
 import "react";
 import { InstructionDocumentation } from "../webComponent/instructionDocumentation";
-import { BLOCK_DATA_TRANSFER_DOCS, BRANCH_DOCS, CONDITION_DOCS, DATA_PROCESSING_IMM_DOCS, DATA_PROCESSING_REG_SHIFT_IMM_DOCS, DATA_PROCESSING_REG_SHIFT_REG_DOCS, LOAD_STORE_DOCS, MUL_ACC_DOCS, SWAP_DOCS } from "../constants/functionDocumentation";
+import { BLOCK_DATA_TRANSFER_DOCS, BRANCH_DOCS, CONDITION_DOCS, DATA_PROCESSING_IMM_DOCS, DATA_PROCESSING_REG_SHIFT_IMM_DOCS, DATA_PROCESSING_REG_SHIFT_REG_DOCS, LOAD_STORE_DOCS, MOV_DOCS, MUL_ACC_DOCS, SWAP_DOCS } from "../constants/functionDocumentation";
 
 function Documentation() {
   return (
@@ -75,6 +75,9 @@ function Documentation() {
           Note if you add a B flag to make SWPB, the instruction works on Byte instead of Word.
         </p>
         <InstructionDocumentation instructionsDoc={SWAP_DOCS} />
+
+        <h2 className="doc-section">Other instructions</h2>
+        <InstructionDocumentation instructionsDoc={MOV_DOCS} />
       </section>
     </div>
   );

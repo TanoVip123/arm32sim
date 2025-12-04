@@ -135,3 +135,8 @@ export const CONDITION_DOCS : ConditionDoc[]  = [
     {cond: "1101", mnemonic: "LE", meaning: "Signed less than or equal", condition_flag:"Z==1 or N!=V"},
     {cond: "1110", mnemonic: "AL", meaning: "Always (unconditional)", condition_flag:"Any"},
 ]
+
+export const MOV_DOCS : InstructionDoc[] = [
+    {name: "MOVW", syntax: "MOVW<c> <Rt>, #<imm16>", example: "MOVW R1, #123"},
+    {name: "MOVT", syntax: "MOVT<c> <Rt>, #<imm16>", example: "MOVT R1, #123"}
+]
