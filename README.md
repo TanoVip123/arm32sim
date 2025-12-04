@@ -79,12 +79,12 @@ npm run build
 
 ## Project structure
 
-- **./components**: contains the backend component of the ARM32 simulator
-- **./constants**: contains well... constants for various files
-- **./function**: contains helper functions
-- **./interface**: contains the interface definitions for ARM32 simulator components
-- **./pages**: contains the React pages. These are simpy React function components
-- **./types**: contains the type definitions. This also contains the types of various ARM32 instructions that are used to assemble and decode an instruction. This is because ARM32 instructions are organized into groups so I used Typescript type to represent these groups.
-- **./webComponent**: similar to what is in **./pages** but smaller. These are little components that can be reused.
+- **./src/components**: contains the backend component of the ARM32 simulator
+- **./src/constants**: contains well... constants for various files
+- **./src/function**: contains helper functions
+- **./src/interface**: contains the interface definitions for ARM32 simulator components
+- **./src/pages**: contains the React pages. These are simpy React function components
+- **./src/types**: contains the type definitions. This also contains the types of various ARM32 instructions that are used to assemble and decode an instruction. This is because ARM32 instructions are organized into groups so I used Typescript type to represent these groups.
+- **./src/webComponent**: similar to what is in **./pages** but smaller. These are little components that can be reused.
 
-* **./test**: contains unit test. This is what being run when you do `npm run test`.
+* **./tests**: contains unit test. This is what being run when you do `npm run test`.
